@@ -1,5 +1,6 @@
 
 # 24-25J-254 - CeylonCare🚀
+### Git Reositry Link - https://github.com/it21223976/CeylonCare.git
 
 Sri Lanka faces a significant limitation of non-communicable diseases, including diabetes, cholesterol, and high blood pressure. The project aims to develop a mobile application that integrates traditional Sri Lankan food remedies with modern technology, offering personalized health advice, disease management, and overall well-being to Sri Lankan users.🌟
 
@@ -7,7 +8,41 @@ Sri Lanka faces a significant limitation of non-communicable diseases, including
 
 ## 📚 Components Overview
 
-### **Component 01: Machine Learning-Based Disorder Prediction**  
+### **Component 01: AR-Based Stress Management for Chronic Conditions**  
+**Author:** IT21223976 - Yeshmantha W. N
+
+This study focuses on using Augmented Reality (AR) to provide personalized stress management solutions for individuals managing diabetes and hypertension. The AR-based solution combines user feedback and health metrics to create immersive meditation and breathing exercises, guided by a digital avatar. 🌈🧘‍♂️
+
+#### Key Features:
+- Personalized stress management plans.
+- Bilingual support (Sinhala and English) for accessibility.
+- Visual and verbal guidance through an interactive AR interface.
+- Enhanced user engagement for better outcomes.
+
+#### Impact:
+- Addresses localized mental health challenges.
+- Promotes well-being through immersive stress relief techniques.
+
+---
+
+### **Component 02: AI Chatbot for Sinhala-Speaking Users**  
+**Author:** IT21227004 - Fernando W. A. T. A
+
+This component introduces an AI chatbot designed to improve healthcare accessibility for Sinhala-speaking users, focusing on managing diabetes and high blood pressure. By integrating Sinhala voice recognition and natural language processing (NLP), the chatbot provides tailored healthcare advice in the user’s native language. 🩺🤖
+
+#### Key Features:
+- Collection of comprehensive health information (medical history, symptoms, preferences).
+- Personalized healthcare recommendations based on individual profiles.
+- Integration with Sinhala voice recognition for seamless interaction.
+- Regular updates to maintain accuracy and relevance.
+
+#### Benefits:
+- Bridges healthcare accessibility gaps for non-English speakers.
+- Pioneers personalized healthcare solutions for underserved populations.
+
+---
+
+### **Component 03: Machine Learning-Based Disorder Prediction**  
 **Author:** IT21269370 - Pothuwila P. Y. R
 
 In the modern world, disorders such as diabetes and cholesterol are increasingly common due to unbalanced and unhealthy lifestyles. Early detection and accurate diagnostic methods are crucial for effective management and recovery.  
@@ -20,7 +55,7 @@ This research introduces a machine learning-based approach to predict the diagno
 
 ---
 
-### **Component 02: Sri Lankan Recommendation System for Healthy Foods**  
+### **Component 04: Sri Lankan Recommendation System for Healthy Foods**  
 **Author:** IT21289002 - Sakunika K. K
 
 This system blends traditional Sri Lankan food culture with advanced technology to provide personalized dietary recommendations. It uses comprehensive health data and clinical research to suggest traditional Sri Lankan meals tailored to individual health profiles. 🌾🍲
@@ -38,37 +73,9 @@ This system blends traditional Sri Lankan food culture with advanced technology 
 
 ---
 
-### **Component 03: AR-Based Stress Management for Chronic Conditions**  
-**Author:** IT21223976 - Yeshmantha W. N
+## Overall System Diagram
 
-This study focuses on using Augmented Reality (AR) to provide personalized stress management solutions for individuals managing diabetes and hypertension. The AR-based solution combines user feedback and health metrics to create immersive meditation and breathing exercises, guided by a digital avatar. 🌈🧘‍♂️
-
-#### Key Features:
-- Personalized stress management plans.
-- Bilingual support (Sinhala and English) for accessibility.
-- Visual and verbal guidance through an interactive AR interface.
-- Enhanced user engagement for better outcomes.
-
-#### Impact:
-- Addresses localized mental health challenges.
-- Promotes well-being through immersive stress relief techniques.
-
----
-
-### **Component 04: AI Chatbot for Sinhala-Speaking Users**  
-**Author:** IT21227004 - Fernando W. A. T. A
-
-This component introduces an AI chatbot designed to improve healthcare accessibility for Sinhala-speaking users, focusing on managing diabetes and high blood pressure. By integrating Sinhala voice recognition and natural language processing (NLP), the chatbot provides tailored healthcare advice in the user’s native language. 🩺🤖
-
-#### Key Features:
-- Collection of comprehensive health information (medical history, symptoms, preferences).
-- Personalized healthcare recommendations based on individual profiles.
-- Integration with Sinhala voice recognition for seamless interaction.
-- Regular updates to maintain accuracy and relevance.
-
-#### Benefits:
-- Bridges healthcare accessibility gaps for non-English speakers.
-- Pioneers personalized healthcare solutions for underserved populations.
+![image](https://github.com/user-attachments/assets/654ebf47-e65f-45b1-8e1e-727450e4a2e1)
 
 ---
 
