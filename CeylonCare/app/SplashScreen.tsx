@@ -28,7 +28,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
 
         <TouchableOpacity
           style={styles.signupButton}
-          onPress={() => navigation.navigate("SignUp")}
+          onPress={() => navigation.navigate("Register")}
         >
           <Text style={styles.signupText}>Sign Up</Text>
         </TouchableOpacity>
