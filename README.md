@@ -1,106 +1,50 @@
+# Welcome to your Expo app 👋
 
-# 24-25J-254 - CeylonCare🚀
-### Git Reositry Link - https://github.com/it21223976/CeylonCare.git
+This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-Sri Lanka faces a significant limitation of non-communicable diseases, including diabetes, cholesterol, and high blood pressure. The project aims to develop a mobile application that integrates traditional Sri Lankan food remedies with modern technology, offering personalized health advice, disease management, and overall well-being to Sri Lankan users.🌟
+## Get started
 
----
+1. Install dependencies
 
-## 📚 Components Overview
+   ```bash
+   npm install
+   ```
 
-### **Component 01: AR-Based Stress Management for Chronic Conditions**  
-**Author:** IT21223976 - Yeshmantha W. N
+2. Start the app
 
-This study focuses on using Augmented Reality (AR) to provide personalized stress management solutions for individuals managing diabetes and hypertension. The AR-based solution combines user feedback and health metrics to create immersive meditation and breathing exercises, guided by a digital avatar. 🌈🧘‍♂️
+   ```bash
+    npx expo start
+   ```
 
-#### Key Features:
-- Personalized stress management plans.
-- Bilingual support (Sinhala and English) for accessibility.
-- Visual and verbal guidance through an interactive AR interface.
-- Enhanced user engagement for better outcomes.
+In the output, you'll find options to open the app in a
 
-#### Impact:
-- Addresses localized mental health challenges.
-- Promotes well-being through immersive stress relief techniques.
+- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
+- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
+- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
+- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
----
+You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
-### **Component 02: AI Chatbot for Sinhala-Speaking Users**  
-**Author:** IT21227004 - Fernando W. A. T. A
+## Get a fresh project
 
-This component introduces an AI chatbot designed to improve healthcare accessibility for Sinhala-speaking users, focusing on managing diabetes and high blood pressure. By integrating Sinhala voice recognition and natural language processing (NLP), the chatbot provides tailored healthcare advice in the user’s native language. 🩺🤖
+When you're ready, run:
 
-#### Key Features:
-- Collection of comprehensive health information (medical history, symptoms, preferences).
-- Personalized healthcare recommendations based on individual profiles.
-- Integration with Sinhala voice recognition for seamless interaction.
-- Regular updates to maintain accuracy and relevance.
+```bash
+npm run reset-project
+```
 
-#### Benefits:
-- Bridges healthcare accessibility gaps for non-English speakers.
-- Pioneers personalized healthcare solutions for underserved populations.
+This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
 
----
+## Learn more
 
-### **Component 03: Machine Learning-Based Disorder Prediction**  
-**Author:** IT21269370 - Pothuwila P. Y. R
+To learn more about developing your project with Expo, look at the following resources:
 
-In the modern world, disorders such as diabetes and cholesterol are increasingly common due to unbalanced and unhealthy lifestyles. Early detection and accurate diagnostic methods are crucial for effective management and recovery.  
-This research introduces a machine learning-based approach to predict the diagnosis status and severity of these disorders based on user-input symptoms. By analyzing patient records, multiple machine learning models—including ensemble techniques—identify patterns and correlations between symptoms and these conditions.
+- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
+- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
 
-#### Key Features:
-- Evaluation of predictive algorithms (decision trees, SVMs, neural networks).
-- Development of an ensemble model for enhanced accuracy.
-- Implementation as a mobile application for user-friendly interaction.
+## Join the community
 
----
+Join our community of developers creating universal apps.
 
-### **Component 04: Sri Lankan Recommendation System for Healthy Foods**  
-**Author:** IT21289002 - Sakunika K. K
-
-This system blends traditional Sri Lankan food culture with advanced technology to provide personalized dietary recommendations. It uses comprehensive health data and clinical research to suggest traditional Sri Lankan meals tailored to individual health profiles. 🌾🍲
-
-#### Key Features:
-- Collection of health and dietary data for personalized user profiling.
-- Advanced machine learning algorithms for meal recommendations.
-- Feedback-based learning for continuously relevant suggestions.
-- Image processing to analyze user adherence to dietary plans.
-- Manual input options for flexible menu planning.
-
-#### Highlights:
-- Promotes Sri Lanka’s culinary traditions while addressing modern health challenges.
-- Encourages healthier eating habits and improved health outcomes.
-
----
-
-## Overall System Diagram
-
-![image](https://github.com/user-attachments/assets/654ebf47-e65f-45b1-8e1e-727450e4a2e1)
-
----
-
-## 🛠️ Technologies Used
-- **Machine Learning**: Decision Trees, SVMs, Neural Networks, Ensemble Models.
-- **Natural Language Processing (NLP)**: Advanced conversational capabilities.
-- **Augmented Reality (AR)**: Immersive stress management tools.
-- **Voice Recognition**: Sinhala voice support for better accessibility.
-- **Mobile Development**: User-friendly applications for health management.
-
----
-
-## 🎯 Objectives
-1. Early detection and management of diabetes and cholesterol using ML-based predictive models.
-2. Personalized dietary plans promoting Sri Lankan culinary traditions.
-3. Stress management through AR-based interactive solutions.
-4. Accessible healthcare advice for Sinhala-speaking users via AI chatbots.
-
----
-
-## 📈 Expected Outcomes
-- Improved early diagnosis and management of chronic health conditions.
-- Personalized and culturally relevant dietary recommendations.
-- Enhanced stress management outcomes with immersive AR.
-- Bridging language gaps in healthcare through AI-driven chatbots.
-
----
-
+- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
+- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
