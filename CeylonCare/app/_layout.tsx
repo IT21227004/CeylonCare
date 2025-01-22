@@ -2,6 +2,7 @@ import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 import Register from "./pages/Register";
 import SplashScreen from "./pages/SplashScreen";
+import Login from "./pages/Login";
 
 const Stack = createStackNavigator();
 
@@ -16,6 +17,11 @@ const StackNavigator = () => {
       <Stack.Screen
         name="Register"
         component={Register}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Login"
+        component={Login}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

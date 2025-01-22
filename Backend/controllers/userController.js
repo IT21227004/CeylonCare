@@ -1,3 +1,4 @@
+const { signInWithEmailAndPassword } = require("firebase/auth");
 const { createUserWithEmailAndPassword } = require("firebase/auth");
 const { doc, setDoc } = require("firebase/firestore");
 const { auth, db } = require("../firebaseConfig");
@@ -6,11 +7,9 @@ const registerUser = async (req, res) => {
   const { email, password, fullName, mobileNumber, dob } = req.body;
 
   try {
-    // Create user in Firebase Authentication
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const userId = userCredential.user.uid;
 
-    // Save additional user details to Firestore
     await setDoc(doc(db, "users", userId), {
       fullName,
       mobileNumber,
@@ -26,4 +25,18 @@ const registerUser = async (req, res) => {
   }
 };
 
-module.exports = { registerUser };
+const loginUser = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    res.status(200).json({ message: "Login successful", user });
+  } catch (error) {
+    console.error("Error logging in:", error.message);
+    res.status(400).json({ error: error.message });
+  }
+};
+
+module.exports = { registerUser, loginUser };

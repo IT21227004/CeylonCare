@@ -45,7 +45,7 @@ const Register = ({ navigation }: any) => {
 
       if (response.ok) {
         Alert.alert("Success", "Account created successfully");
-        navigation.navigate("Splash");
+        navigation.navigate("Login");
       } else {
         throw new Error(responseData.error || "Registration failed");
       }
