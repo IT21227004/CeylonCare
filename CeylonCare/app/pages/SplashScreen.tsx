@@ -1,3 +1,4 @@
+import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import { StyleSheet, View, Text, Image, TouchableOpacity } from "react-native";
 
@@ -13,13 +14,17 @@ const SplashScreen = ({ navigation }: any) => {
 
       {/* Buttons */}
       <View style={styles.buttonsContainer}>
-        <TouchableOpacity
-          style={styles.loginButton}
-          onPress={() => navigation.navigate("Login")} // Ensure "Login" is registered in your navigator
-        >
-          <Text style={styles.loginText}>Log In</Text>
-        </TouchableOpacity>
+        {/* Log In Button */}
+        <LinearGradient
+  colors={["#33E4DB", "#00BBD3"]}
+  style={styles.loginButton}
+>
+  <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+    <Text style={styles.loginText}>Log In</Text>
+  </TouchableOpacity>
+</LinearGradient>
 
+        {/* Sign Up Button */}
         <TouchableOpacity
           style={styles.signupButton}
           onPress={() => navigation.navigate("Register")}
@@ -50,36 +55,39 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   loginButton: {
-    width: "80%",
-    paddingVertical: 15,
-    backgroundColor: "#33E4DB",
+    width: 207,
+    height: 45,
     borderRadius: 30,
+    justifyContent: "center",
     alignItems: "center",
-    marginBottom: 15,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 5,
+    marginBottom: 20,
+    gap: 10
   },
   loginText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
+    color: 'white', 
+    fontSize: 24, 
+    fontFamily: 'League Spartan', 
+    fontWeight: '500', 
+    textTransform: 'capitalize', 
+    wordWrap: 'break-word'
   },
   signupButton: {
-    width: "80%",
-    paddingVertical: 15,
+    flexDirection: "column",
+    width: 207,
+    height: 45,
     backgroundColor: "#E9F6FE",
     borderRadius: 30,
+    justifyContent: "center",
     alignItems: "center",
-    borderColor: "#33E4DB",
-    borderWidth: 1,
+    gap: 10
   },
   signupText: {
-    color: "#33E4DB",
-    fontSize: 18,
-    fontWeight: "bold",
+    color: '#13CAD6', 
+    fontSize: 24, 
+    fontFamily: 'League Spartan', 
+    fontWeight: '500', 
+    textTransform: 'capitalize', 
+    wordWrap: 'break-word'
   },
 });
 
