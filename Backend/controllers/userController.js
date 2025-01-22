@@ -40,3 +40,17 @@ const loginUser = async (req, res) => {
 };
 
 module.exports = { registerUser, loginUser };
+
+const sendResetPasswordEmail = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    await sendPasswordResetEmail(auth, email);
+    res.status(200).json({ message: "Password reset email sent successfully!" });
+  } catch (error) {
+    console.error("Error sending reset email:", error.message);
+    res.status(400).json({ error: error.message });
+  }
+};
+
+module.exports = { sendResetPasswordEmail };
