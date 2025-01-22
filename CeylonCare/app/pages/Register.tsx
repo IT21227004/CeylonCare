@@ -10,6 +10,8 @@ import {
 } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import moment from "moment";
+import { LinearGradient } from "expo-linear-gradient";
+import Ionicons from "react-native-vector-icons/Ionicons"; // Import Ionicons
 
 const Register = ({ navigation }: any) => {
   const [fullName, setFullName] = useState("");
@@ -60,9 +62,15 @@ const Register = ({ navigation }: any) => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.header}>
+      <LinearGradient colors={["#33E4DB", "#00BBD3"]} style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="arrow-back" size={24} color="white" />
+        </TouchableOpacity>
         <Text style={styles.headerText}>New Account</Text>
-      </View>
+      </LinearGradient>
 
       <View style={styles.formContainer}>
         <Text style={styles.label}>Full Name</Text>
@@ -120,29 +128,95 @@ const Register = ({ navigation }: any) => {
           <Text style={styles.signUpButtonText}>Sign Up</Text>
         </TouchableOpacity>
       </View>
+
+      <Text style={styles.terms}>
+        By continuing, you agree to{" "}
+        <Text style={styles.link}>Terms of Use</Text> and{" "}
+        <Text style={styles.link}>Privacy Policy</Text>.
+      </Text>
+      <Text style={styles.footer}>
+        Already have an account?{" "}
+        <Text style={styles.link} onPress={() => navigation.navigate("Login")}>
+          Log In
+        </Text>
+      </Text>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, backgroundColor: "#fff", padding: 20 },
-  header: { alignItems: "center", padding: 20, backgroundColor: "#33E4DB" },
-  headerText: { fontSize: 24, color: "#fff" },
-  formContainer: { marginTop: 20 },
-  label: { fontSize: 18, color: "#252525", marginBottom: 5 },
+  container: {
+    flexGrow: 1,
+    backgroundColor: "white",
+    padding: 20,
+  },
+  header: {
+    height: 99,
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  backButton: {
+    position: "absolute",
+    left: 15,
+  },
+  headerText: {
+    fontSize: 24,
+    color: "#FFFFFF",
+    fontFamily: "League Spartan",
+    fontWeight: "600",
+  },
+  formContainer: {
+    marginTop: 20,
+  },
+  label: {
+    fontSize: 20,
+    color: "#252525",
+    marginBottom: 5,
+    fontWeight: "500",
+    fontFamily: "League Spartan",
+  },
   input: {
     backgroundColor: "#E9F6FE",
-    padding: 10,
-    borderRadius: 10,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderRadius: 13,
+    borderWidth: 1,
+    borderColor: "#E9F6FE",
     marginBottom: 15,
+    fontSize: 20,
+    color: "#13CAD6",
+    fontFamily: "League Spartan",
   },
   signUpButton: {
     backgroundColor: "#33E4DB",
-    padding: 15,
-    borderRadius: 10,
+    borderRadius: 30,
     alignItems: "center",
+    paddingVertical: 15,
   },
-  signUpButtonText: { color: "#fff", fontSize: 18 },
+  signUpButtonText: {
+    color: "#FFFFFF",
+    fontSize: 24,
+    fontWeight: "600",
+    fontFamily: "League Spartan",
+  },
+  terms: {
+    fontSize: 12,
+    color: "#252525",
+    textAlign: "center",
+    marginTop: 10,
+  },
+  link: {
+    color: "#13CAD6",
+    fontWeight: "500",
+  },
+  footer: {
+    fontSize: 12,
+    color: "#252525",
+    textAlign: "center",
+    marginTop: 15,
+  },
 });
 
 export default Register;
