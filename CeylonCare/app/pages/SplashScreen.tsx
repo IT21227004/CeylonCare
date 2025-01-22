@@ -1,18 +1,12 @@
 import React from "react";
 import { StyleSheet, View, Text, Image, TouchableOpacity } from "react-native";
 
-type SplashScreenProps = {
-  navigation: {
-    navigate: (screen: string) => void;
-  };
-};
-
-const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
+const SplashScreen = ({ navigation }: any) => {
   return (
     <View style={styles.container}>
       {/* Logo */}
       <Image
-        source={require("../assets/images/logo.png")}
+        source={require("../../assets/images/logo.png")}
         style={styles.logo}
         resizeMode="contain"
       />
@@ -21,7 +15,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
       <View style={styles.buttonsContainer}>
         <TouchableOpacity
           style={styles.loginButton}
-          onPress={() => navigation.navigate("Login")}
+          onPress={() => navigation.navigate("Login")} // Ensure "Login" is registered in your navigator
         >
           <Text style={styles.loginText}>Log In</Text>
         </TouchableOpacity>

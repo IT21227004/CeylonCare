@@ -10,8 +10,6 @@ import {
 } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import moment from "moment";
-import { auth } from "../../Backend/firebaseConfig";
-import { createUserWithEmailAndPassword } from "firebase/auth";
 
 const Register = ({ navigation }: any) => {
   const [fullName, setFullName] = useState("");
@@ -22,51 +20,41 @@ const Register = ({ navigation }: any) => {
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
   const handleSignUp = async () => {
+    console.log("Sign Up button clicked");
+
     if (!fullName || !password || !email || !mobileNumber || !dob) {
       Alert.alert("Error", "Please fill in all fields");
+      console.log("Validation failed: missing fields");
       return;
     }
 
-    console.log("Data sent to backend:", {
-      email,
-      password,
-      fullName,
-      mobileNumber,
-      dob,
-    });
-
     try {
-      const response = await fetch("http://192.168.8.134:5000/register", {
+      console.log("Sending request to backend...");
+      const response = await fetch("http://192.168.60.22:5000/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          email,
-          password,
-          fullName,
-          mobileNumber,
-          dob,
-        }),
+        body: JSON.stringify({ email, password, fullName, mobileNumber, dob }),
       });
 
-      const responseBody = await response.json();
-      console.log("Response from backend:", responseBody);
+      const responseData = await response.json();
+      console.log("Response from backend:", responseData);
 
       if (response.ok) {
         Alert.alert("Success", "Account created successfully");
-        navigation.navigate("Login");
+        navigation.navigate("Splash");
       } else {
-        throw new Error(responseBody.error || "Registration failed");
+        throw new Error(responseData.error || "Registration failed");
       }
     } catch (error: any) {
-      console.error("Error on frontend:", error.message);
+      console.error("Error in Sign Up:", error.message);
       Alert.alert("Error", error.message);
     }
   };
 
   const handleConfirmDate = (date: Date) => {
-    setDob(moment(date).format("DD / MM / YYYY")); // Format the date
+    setDob(moment(date).format("DD / MM / YYYY"));
     setDatePickerVisibility(false);
   };
 
@@ -74,14 +62,9 @@ const Register = ({ navigation }: any) => {
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerText}>New Account</Text>
-
-        <TouchableOpacity onPress={() => navigation.navigate("Splash")}>
-          <Text>back</Text>
-        </TouchableOpacity>
       </View>
 
       <View style={styles.formContainer}>
-        {/* Full Name */}
         <Text style={styles.label}>Full Name</Text>
         <TextInput
           style={styles.input}
@@ -90,7 +73,6 @@ const Register = ({ navigation }: any) => {
           onChangeText={setFullName}
         />
 
-        {/* Password */}
         <Text style={styles.label}>Password</Text>
         <TextInput
           style={styles.input}
@@ -100,28 +82,23 @@ const Register = ({ navigation }: any) => {
           onChangeText={setPassword}
         />
 
-        {/* Email */}
         <Text style={styles.label}>Email</Text>
         <TextInput
           style={styles.input}
-          textContentType="emailAddress"
           placeholder="example@example.com"
           value={email}
           onChangeText={setEmail}
         />
 
-        {/* Mobile Number */}
         <Text style={styles.label}>Mobile Number</Text>
         <TextInput
           style={styles.input}
-          textContentType="telephoneNumber"
-          placeholder="0777777"
+          placeholder="0777777777"
           keyboardType="phone-pad"
           value={mobileNumber}
           onChangeText={setMobileNumber}
         />
 
-        {/* Date of Birth */}
         <Text style={styles.label}>Date of Birth</Text>
         <TouchableOpacity
           style={styles.input}
@@ -132,7 +109,6 @@ const Register = ({ navigation }: any) => {
           </Text>
         </TouchableOpacity>
 
-        {/* Date Picker Modal */}
         <DateTimePickerModal
           isVisible={isDatePickerVisible}
           mode="date"
@@ -140,96 +116,33 @@ const Register = ({ navigation }: any) => {
           onCancel={() => setDatePickerVisibility(false)}
         />
 
-        <Text style={styles.termsText}>
-          By continuing, you agree to{" "}
-          <Text style={styles.link}>Terms of Use</Text> and
-          <Text style={styles.link}> Privacy Policy</Text>.
-        </Text>
-
-        {/* Sign Up Button */}
         <TouchableOpacity style={styles.signUpButton} onPress={handleSignUp}>
           <Text style={styles.signUpButtonText}>Sign Up</Text>
         </TouchableOpacity>
-
-        <Text style={styles.footerText}>
-          Already have an account?{" "}
-          <Text
-            style={styles.link}
-            onPress={() => navigation.navigate("Login")}
-          >
-            Log in
-          </Text>
-        </Text>
       </View>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    backgroundColor: "#FFFFFF",
-    padding: 20,
-  },
-  header: {
-    backgroundColor: "#33E4DB",
-    paddingVertical: 20,
-    borderRadius: 10,
-    alignItems: "center",
-  },
-  headerText: {
-    fontSize: 24,
-    color: "#FFFFFF",
-    fontWeight: "600",
-  },
-  formContainer: {
-    marginTop: 20,
-  },
-  label: {
-    fontSize: 18,
-    color: "#252525",
-    marginBottom: 5,
-    fontWeight: "500",
-  },
+  container: { flexGrow: 1, backgroundColor: "#fff", padding: 20 },
+  header: { alignItems: "center", padding: 20, backgroundColor: "#33E4DB" },
+  headerText: { fontSize: 24, color: "#fff" },
+  formContainer: { marginTop: 20 },
+  label: { fontSize: 18, color: "#252525", marginBottom: 5 },
   input: {
     backgroundColor: "#E9F6FE",
+    padding: 10,
     borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#E9F6FE",
-    paddingHorizontal: 15,
-    paddingVertical: 10,
     marginBottom: 15,
-    fontSize: 16,
-    color: "#13CAD6",
-    justifyContent: "center",
-  },
-  termsText: {
-    fontSize: 12,
-    color: "#252525",
-    marginBottom: 15,
-    textAlign: "center",
-  },
-  link: {
-    color: "#13CAD6",
-    fontWeight: "500",
   },
   signUpButton: {
     backgroundColor: "#33E4DB",
-    borderRadius: 30,
-    paddingVertical: 15,
+    padding: 15,
+    borderRadius: 10,
     alignItems: "center",
-    marginBottom: 15,
   },
-  signUpButtonText: {
-    color: "#FFFFFF",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  footerText: {
-    fontSize: 12,
-    color: "#252525",
-    textAlign: "center",
-  },
+  signUpButtonText: { color: "#fff", fontSize: 18 },
 });
 
 export default Register;
