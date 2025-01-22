@@ -40,7 +40,7 @@ const Login = ({ navigation }: any) => {
       const responseData = await response.json();
       console.log("Response from backend:", responseData);
       Alert.alert("Success", "Logged in successfully!");
-      navigation.navigate("Splash");
+      navigation.navigate("Onboarding");
     } catch (error: any) {
       console.error("Login error:", error.message);
       Alert.alert("Error", error.message);

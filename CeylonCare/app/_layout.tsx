@@ -4,6 +4,7 @@ import Register from "./pages/Register";
 import SplashScreen from "./pages/SplashScreen";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
+import Onboarding from "./pages/Onboarding";
 
 const Stack = createStackNavigator();
 
@@ -28,6 +29,11 @@ const StackNavigator = () => {
       <Stack.Screen
         name="ForgotPassword"
         component={ForgotPassword}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Onboarding"
+        component={Onboarding}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>
