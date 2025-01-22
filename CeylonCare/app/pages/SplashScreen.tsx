@@ -16,13 +16,13 @@ const SplashScreen = ({ navigation }: any) => {
       <View style={styles.buttonsContainer}>
         {/* Log In Button */}
         <LinearGradient
-  colors={["#33E4DB", "#00BBD3"]}
-  style={styles.loginButton}
->
-  <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-    <Text style={styles.loginText}>Log In</Text>
-  </TouchableOpacity>
-</LinearGradient>
+          colors={["#33E4DB", "#00BBD3"]}
+          style={styles.loginButton}
+        >
+          <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+            <Text style={styles.loginText}>Log In</Text>
+          </TouchableOpacity>
+        </LinearGradient>
 
         {/* Sign Up Button */}
         <TouchableOpacity
@@ -43,51 +43,60 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "white",
     padding: 20,
+    overflow: "hidden",
+    gap: 28,
   },
+
   logo: {
-    width: 200,
-    height: 200,
-    marginBottom: 20,
+    width: 300,
+    height: 267.96,
+    transformOrigin: "0 0",
   },
+
   buttonsContainer: {
-    width: "100%",
+    position: "relative",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
     alignItems: "center",
-    marginTop: 20,
+    gap: 20,
   },
+
   loginButton: {
     width: 207,
     height: 45,
     borderRadius: 30,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 20,
-    gap: 10
   },
+
   loginText: {
-    color: 'white', 
-    fontSize: 24, 
-    fontFamily: 'League Spartan', 
-    fontWeight: '500', 
-    textTransform: 'capitalize', 
-    wordWrap: 'break-word'
+    textAlign: "center",
+    color: "white",
+    fontSize: 24,
+    fontFamily: "League Spartan",
+    fontWeight: "500",
+    textTransform: "capitalize",
+    wordWrap: "break-word",
   },
+
   signupButton: {
-    flexDirection: "column",
     width: 207,
     height: 45,
     backgroundColor: "#E9F6FE",
     borderRadius: 30,
     justifyContent: "center",
     alignItems: "center",
-    gap: 10
   },
+
   signupText: {
-    color: '#13CAD6', 
-    fontSize: 24, 
-    fontFamily: 'League Spartan', 
-    fontWeight: '500', 
-    textTransform: 'capitalize', 
-    wordWrap: 'break-word'
+    textAlign: "center",
+    color: "#13CAD6",
+    fontSize: 24,
+    fontFamily: "League Spartan",
+    fontWeight: "500",
+    textTransform: "capitalize",
+    wordWrap: "break-word",
   },
 });
 
