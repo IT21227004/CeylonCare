@@ -1,6 +1,10 @@
 const express = require("express");
 const cors = require("cors");
-const { registerUser, loginUser, sendResetPasswordEmail } = require("./controllers/userController");
+const {
+  registerUser,
+  loginUser,
+  sendResetPasswordEmail,
+} = require("./controllers/userController");
 
 const app = express();
 app.use(cors());
