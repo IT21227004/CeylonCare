@@ -24,7 +24,7 @@ const Login = ({ navigation }: any) => {
 
     try {
       console.log("Sending login request...");
-      const response = await fetch("http://192.168.60.22:5000/login", {
+      const response = await fetch("http://192.168.8.134:5000/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -105,7 +105,10 @@ const Login = ({ navigation }: any) => {
 
       <Text style={styles.footer}>
         Don’t have an account?{" "}
-        <Text style={styles.link} onPress={() => navigation.navigate("Register")}>
+        <Text
+          style={styles.link}
+          onPress={() => navigation.navigate("Register")}
+        >
           Sign Up
         </Text>
       </Text>
