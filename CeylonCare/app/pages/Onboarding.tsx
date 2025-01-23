@@ -43,7 +43,7 @@ const Onboarding = ({ navigation }: any) => {
       setCurrentIndex(nextIndex);
       flatListRef.current?.scrollToIndex({ index: nextIndex });
     } else {
-      navigation.navigate("Splash"); // Replace "Home" with your target screen after onboarding
+      navigation.navigate("Home");
     }
   };
 
@@ -61,7 +61,7 @@ const Onboarding = ({ navigation }: any) => {
   };
 
   const handleSkip = () => {
-    navigation.navigate("Splash");
+    navigation.navigate("Home");
   };
 
   return (
