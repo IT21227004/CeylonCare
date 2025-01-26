@@ -22,13 +22,16 @@ const ForgotPassword = ({ navigation }: any) => {
 
     try {
       console.log("Sending password reset request...");
-      const response = await fetch("http://192.168.94.21:5000/forgetPassword", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email }),
-      });
+      const response = await fetch(
+        "http://192.168.94.211:5000/forgetPassword",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }),
+        }
+      );
 
       const responseData = await response.json();
       console.log("Response from backend:", responseData);

@@ -38,7 +38,7 @@ const ProfileDetails = () => {
       const userId = await AsyncStorage.getItem("userId");
       if (!userId) throw new Error("User ID not found");
 
-      const response = await fetch(`http://192.168.94.21:5000/user/${userId}`);
+      const response = await fetch(`http://192.168.94.211:5000/user/${userId}`);
       if (!response.ok)
         throw new Error(`Failed to fetch profile: ${response.statusText}`);
 
@@ -71,13 +71,16 @@ const ProfileDetails = () => {
     }
 
     try {
-      const response = await fetch(`http://192.168.94.21:5000/user/${userId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-        body: formData,
-      });
+      const response = await fetch(
+        `http://192.168.94.211:5000/user/${userId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          body: formData,
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`Failed to update profile: ${response.statusText}`);
@@ -142,13 +145,16 @@ const ProfileDetails = () => {
     }
 
     try {
-      const response = await fetch(`http://192.168.94.21:5000/user/${userId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-        body: formData,
-      });
+      const response = await fetch(
+        `http://192.168.94.211:5000/user/${userId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          body: formData,
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to update profile");
