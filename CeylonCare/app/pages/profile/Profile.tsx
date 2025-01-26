@@ -39,7 +39,7 @@ const Profile = ({ navigation }: any) => {
       id: "3",
       title: "Payment Method",
       icon: require("../../../assets/images/paymentIcon_prof.png"),
-      navigateTo: "PaymentMethod",
+      navigateTo: "Profile",
     },
     {
       id: "4",
