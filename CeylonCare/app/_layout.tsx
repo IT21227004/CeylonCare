@@ -8,7 +8,8 @@ import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import Onboarding from "./pages/Onboarding";
 import Home from "./pages/Home";
-import Profile from "./pages/Profile";
+import Profile from "./pages/profile/Profile";
+import ProfileDetails from "./pages/profile/ProfileDetails";
 
 const Stack = createStackNavigator();
 
@@ -48,6 +49,11 @@ const StackNavigator = () => {
       <Stack.Screen
         name="Profile"
         component={Profile}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ProfileDetails"
+        component={ProfileDetails}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

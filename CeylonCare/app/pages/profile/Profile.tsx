@@ -17,34 +17,39 @@ const Profile = ({ navigation }: any) => {
     name: "Jane Doe",
     phone: "+123 567 89000",
     email: "janedoe@example.com",
-    profileImage: require("../../assets/images/profile 1.png"),
+    profileImage: require("../../../assets/images/profile 1.png"),
   };
 
   const sections = [
     {
       id: "1",
       title: "Profile",
-      icon: require("../../assets/images/userIcon_prof.png"),
+      icon: require("../../../assets/images/userIcon_prof.png"),
+      navigateTo: "ProfileDetails",
     },
     {
       id: "2",
       title: "Health Data",
-      icon: require("../../assets/images/healthDataIcon_prof.png"),
+      icon: require("../../../assets/images/healthDataIcon_prof.png"),
+      navigateTo: "HealthData",
     },
     {
       id: "3",
       title: "Payment Method",
-      icon: require("../../assets/images/paymentIcon_prof.png"),
+      icon: require("../../../assets/images/paymentIcon_prof.png"),
+      navigateTo: "PaymentMethod",
     },
     {
       id: "4",
       title: "Privacy Policy",
-      icon: require("../../assets/images/policyIcon_prof.png"),
+      icon: require("../../../assets/images/policyIcon_prof.png"),
+      navigateTo: "PrivacyPolicy",
     },
     {
       id: "5",
       title: "Logout",
-      icon: require("../../assets/images/logOutIcon_prof.png"),
+      icon: require("../../../assets/images/logOutIcon_prof.png"),
+      navigateTo: "Logout",
     },
   ];
 
@@ -63,7 +68,7 @@ const Profile = ({ navigation }: any) => {
 
         <TouchableOpacity
           style={styles.profileSection}
-          onPress={() => navigation.navigate("Home")}
+          onPress={() => navigation.navigate("Profile")}
         >
           <Image source={user.profileImage} style={styles.profileImage} />
           <View style={styles.profileDetails}>
@@ -80,7 +85,7 @@ const Profile = ({ navigation }: any) => {
           <TouchableOpacity
             key={section.id}
             style={styles.option}
-            onPress={() => navigation.navigate("Home")} // Placeholder for navigation
+            onPress={() => navigation.navigate(section.navigateTo)}
           >
             <Image source={section.icon} style={styles.optionIcon} />
             <Text style={styles.optionText}>{section.title}</Text>

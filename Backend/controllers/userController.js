@@ -1,12 +1,14 @@
-const { signInWithEmailAndPassword } = require("firebase/auth");
-const { createUserWithEmailAndPassword } = require("firebase/auth");
-const { sendPasswordResetEmail } = require("firebase/auth");
-const { doc, setDoc } = require("firebase/firestore");
+const {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+} = require("firebase/auth");
+const { doc, setDoc, getDoc, updateDoc } = require("firebase/firestore");
 const { auth, db } = require("../firebaseConfig");
 
+// Register User
 const registerUser = async (req, res) => {
   const { email, password, fullName, mobileNumber, dob } = req.body;
-
   try {
     const userCredential = await createUserWithEmailAndPassword(
       auth,
@@ -20,40 +22,38 @@ const registerUser = async (req, res) => {
       mobileNumber,
       dob,
       email,
+      profilePhoto: null, // Default profile photo is null
       createdAt: new Date().toISOString(),
     });
 
-    res.status(201).json({
-      message: "User registered successfully",
-      user: userCredential.user,
-    });
+    res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
     console.error("Error registering user:", error.message);
     res.status(400).json({ error: error.message });
   }
 };
 
+// Login User
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
-
   try {
     const userCredential = await signInWithEmailAndPassword(
       auth,
       email,
       password
     );
-    const user = userCredential.user;
-
-    res.status(200).json({ message: "Login successful", user });
+    res
+      .status(200)
+      .json({ message: "Login successful", user: userCredential.user });
   } catch (error) {
     console.error("Error logging in:", error.message);
     res.status(400).json({ error: error.message });
   }
 };
 
+// Send Reset Password Email
 const sendResetPasswordEmail = async (req, res) => {
   const { email } = req.body;
-
   try {
     await sendPasswordResetEmail(auth, email);
     res
@@ -65,4 +65,98 @@ const sendResetPasswordEmail = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser, sendResetPasswordEmail };
+// Get User Profile
+const getUserProfile = async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const userRef = doc(db, "users", userId);
+    const userSnapshot = await getDoc(userRef);
+
+    if (userSnapshot.exists()) {
+      res.status(200).json(userSnapshot.data());
+    } else {
+      res.status(404).json({ message: "User not found" });
+    }
+  } catch (error) {
+    console.error("Error fetching user profile:", error.message);
+    res.status(500).json({ error: "Failed to fetch user profile" });
+  }
+};
+
+// Update User Profile
+// const updateUserProfile = async (req, res) => {
+//   const { userId } = req.params;
+//   const { fullName, mobileNumber } = req.body;
+//   const profilePhoto = req.file;
+
+//   try {
+//     const userRef = doc(db, "users", userId);
+//     let profilePhotoUrl = null;
+
+//     // If profile photo exists, we need to store the image URL
+//     if (profilePhoto) {
+//       profilePhotoUrl = `${req.protocol}://${req.get(
+//         "host"
+//       )}/uploads/profilePhotos/${profilePhoto.filename}`;
+//     }
+
+//     const updatedData = {
+//       ...(fullName && { fullName }),
+//       ...(mobileNumber && { mobileNumber }),
+//       ...(profilePhotoUrl && { profilePhoto: profilePhotoUrl }),
+//     };
+
+//     if (Object.keys(updatedData).length === 0) {
+//       return res.status(400).json({ error: "No valid fields to update" });
+//     }
+
+//     await updateDoc(userRef, updatedData);
+
+//     const updatedUser = await getDoc(userRef);
+//     res.status(200).json(updatedUser.data());
+//   } catch (error) {
+//     console.error("Error updating profile:", error.message);
+//     res.status(500).json({ error: "Failed to update profile" });
+//   }
+// };
+const updateUserProfile = async (req, res) => {
+  const { userId } = req.params;
+  const { fullName, mobileNumber } = req.body;
+  const profilePhoto = req.file;
+
+  try {
+    const userRef = doc(db, "users", userId);
+    let profilePhotoUrl = null;
+
+    if (profilePhoto) {
+      profilePhotoUrl = `${req.protocol}://${req.get(
+        "host"
+      )}/uploads/profilePhotos/${profilePhoto.filename}`;
+    }
+
+    const updatedData = {
+      ...(fullName && { fullName }),
+      ...(mobileNumber && { mobileNumber }),
+      ...(profilePhotoUrl && { profilePhoto: profilePhotoUrl }),
+    };
+
+    if (Object.keys(updatedData).length === 0) {
+      return res.status(400).json({ error: "No valid fields to update" });
+    }
+
+    await updateDoc(userRef, updatedData);
+    const updatedUser = await getDoc(userRef);
+    res.status(200).json(updatedUser.data());
+  } catch (error) {
+    console.error("Error updating profile:", error.message);
+    res.status(500).json({ error: "Failed to update profile" });
+  }
+};
+
+module.exports = {
+  registerUser,
+  loginUser,
+  sendResetPasswordEmail,
+  getUserProfile,
+  updateUserProfile,
+};

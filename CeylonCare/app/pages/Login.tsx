@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Login = ({ navigation }: any) => {
   const [email, setEmail] = useState("");
@@ -24,7 +25,7 @@ const Login = ({ navigation }: any) => {
 
     try {
       console.log("Sending login request...");
-      const response = await fetch("http://192.168.218.168:5000/login", {
+      const response = await fetch("http://192.168.94.21:5000/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -38,9 +39,15 @@ const Login = ({ navigation }: any) => {
       }
 
       const responseData = await response.json();
+      const { user } = responseData;
+
       console.log("Response from backend:", responseData);
+
+      // Store userId in AsyncStorage
+      await AsyncStorage.setItem("userId", user.uid);
+
       Alert.alert("Success", "Logged in successfully!");
-      navigation.navigate("Onboarding");
+      navigation.navigate("Onboarding"); // Navigate to the app's main screen
     } catch (error: any) {
       console.error("Login error:", error.message);
       Alert.alert("Error", error.message);
