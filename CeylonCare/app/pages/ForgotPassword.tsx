@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
+  Image,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -22,16 +23,13 @@ const ForgotPassword = ({ navigation }: any) => {
 
     try {
       console.log("Sending password reset request...");
-      const response = await fetch(
-        "http://192.168.94.211:5000/forgetPassword",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email }),
-        }
-      );
+      const response = await fetch("http://192.168.94.61:5000/forgetPassword", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
 
       const responseData = await response.json();
       console.log("Response from backend:", responseData);
@@ -59,13 +57,21 @@ const ForgotPassword = ({ navigation }: any) => {
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name="arrow-back" size={24} color="white" />
+          <Image
+            source={require("../../assets/images/backIcon.png")}
+            style={styles.backButtonImage}
+          />
         </TouchableOpacity>
         <Text style={styles.headerText}>Set Password</Text>
       </LinearGradient>
 
       {/* Form */}
       <View style={styles.formContainer}>
+        {/* Instructions */}
+        <Text style={styles.instructions}>
+          Please create a new password to secure your account.
+        </Text>
+
         <Text style={styles.label}>Password</Text>
         <View style={styles.passwordInputContainer}>
           <TextInput
@@ -90,12 +96,14 @@ const ForgotPassword = ({ navigation }: any) => {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity
+        <LinearGradient
+          colors={["#33E4DB", "#00BBD3"]}
           style={styles.resetButton}
-          onPress={handleSendResetPasswordEmail}
         >
-          <Text style={styles.resetButtonText}>Create New Password</Text>
-        </TouchableOpacity>
+          <TouchableOpacity onPress={handleSendResetPasswordEmail}>
+            <Text style={styles.resetButtonText}>Create New Password</Text>
+          </TouchableOpacity>
+        </LinearGradient>
       </View>
     </ScrollView>
   );
@@ -105,34 +113,62 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     backgroundColor: "white",
-    padding: 20,
   },
+
   header: {
-    height: 99,
+    height: 100,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
   },
+
   backButton: {
     position: "absolute",
     left: 15,
+    top: 30,
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
   },
+
+  backButtonImage: {
+    width: 24,
+    height: 24,
+    resizeMode: "contain",
+  },
+
   headerText: {
+    textAlign: "center",
     fontSize: 24,
-    color: "#FFFFFF",
+    color: "white",
     fontFamily: "League Spartan",
     fontWeight: "600",
   },
+
   formContainer: {
-    marginTop: 20,
+    margin: 25,
   },
+
+  instructions: {
+    width: 300,
+    fontSize: 12,
+    color: "#252525",
+    textAlign: "center",
+    alignItems: "center",
+    justifyContent: "center",
+    fontFamily: "League Spartan",
+    fontWeight: 300,
+  },
+
   label: {
-    fontSize: 18,
+    fontSize: 20,
     color: "#252525",
     marginBottom: 5,
     fontWeight: "500",
     fontFamily: "League Spartan",
   },
+
   input: {
     backgroundColor: "#E9F6FE",
     paddingHorizontal: 15,
@@ -141,30 +177,47 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E9F6FE",
     marginBottom: 15,
-    fontSize: 16,
+    fontSize: 20,
     color: "#13CAD6",
+    fontWeight: "400",
+    fontFamily: "League Spartan",
   },
+
   passwordInputContainer: {
     position: "relative",
+    justifyContent: "center",
   },
+
   passwordInput: {
-    paddingRight: 40, // Add padding to make space for the eye icon
+    paddingRight: 40,
   },
+
   eyeIcon: {
     position: "absolute",
     right: 15,
-    top: 12,
+    top: 10,
   },
+
   resetButton: {
-    backgroundColor: "#33E4DB",
-    borderRadius: 30,
+    width: 270,
+    height: 60,
+    paddingLeft: 12,
+    paddingRight: 12,
+    paddingTop: 8,
+    paddingBottom: 8,
+    borderRadius: 100,
+    borderColor: "#33E4DB",
+    borderWidth: 1,
     alignItems: "center",
-    paddingVertical: 15,
-    marginTop: 10,
+    marginTop: 20,
+    justifyContent: "center",
+    gap: 10,
   },
+
   resetButtonText: {
-    color: "#FFFFFF",
-    fontSize: 18,
+    textAlign: "center",
+    color: "white",
+    fontSize: 20,
     fontWeight: "600",
     fontFamily: "League Spartan",
   },

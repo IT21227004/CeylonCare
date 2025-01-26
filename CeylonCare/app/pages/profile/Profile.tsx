@@ -60,7 +60,7 @@ const Profile = ({ navigation }: any) => {
       console.log("Attempting to log out...");
 
       // Update the URL to match your backend endpoint
-      const response = await fetch("http://192.168.94.211:5000/logout", {
+      const response = await fetch("http://192.168.94.61:5000/logout", {
         method: "POST",
       });
 
