@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     padding: 20,
     overflow: "hidden",
-    gap: 28,
+    gap: 90,
   },
 
   logo: {
@@ -59,12 +59,12 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
-    gap: 20,
+    gap: 25,
   },
 
   loginButton: {
-    width: 207,
-    height: 45,
+    width: 220,
+    height: 60,
     borderRadius: 30,
     justifyContent: "center",
     alignItems: "center",
@@ -81,8 +81,8 @@ const styles = StyleSheet.create({
   },
 
   signupButton: {
-    width: 207,
-    height: 45,
+    width: 220,
+    height: 60,
     backgroundColor: "#E9F6FE",
     borderRadius: 30,
     justifyContent: "center",
