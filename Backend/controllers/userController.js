@@ -84,41 +84,6 @@ const getUserProfile = async (req, res) => {
 };
 
 // Update User Profile
-// const updateUserProfile = async (req, res) => {
-//   const { userId } = req.params;
-//   const { fullName, mobileNumber } = req.body;
-//   const profilePhoto = req.file;
-
-//   try {
-//     const userRef = doc(db, "users", userId);
-//     let profilePhotoUrl = null;
-
-//     // If profile photo exists, we need to store the image URL
-//     if (profilePhoto) {
-//       profilePhotoUrl = `${req.protocol}://${req.get(
-//         "host"
-//       )}/uploads/profilePhotos/${profilePhoto.filename}`;
-//     }
-
-//     const updatedData = {
-//       ...(fullName && { fullName }),
-//       ...(mobileNumber && { mobileNumber }),
-//       ...(profilePhotoUrl && { profilePhoto: profilePhotoUrl }),
-//     };
-
-//     if (Object.keys(updatedData).length === 0) {
-//       return res.status(400).json({ error: "No valid fields to update" });
-//     }
-
-//     await updateDoc(userRef, updatedData);
-
-//     const updatedUser = await getDoc(userRef);
-//     res.status(200).json(updatedUser.data());
-//   } catch (error) {
-//     console.error("Error updating profile:", error.message);
-//     res.status(500).json({ error: "Failed to update profile" });
-//   }
-// };
 const updateUserProfile = async (req, res) => {
   const { userId } = req.params;
   const { fullName, mobileNumber } = req.body;

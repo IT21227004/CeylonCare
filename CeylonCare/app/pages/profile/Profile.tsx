@@ -31,7 +31,7 @@ const Profile = ({ navigation }: any) => {
       id: "2",
       title: "Health Data",
       icon: require("../../../assets/images/healthDataIcon_prof.png"),
-      navigateTo: "HealthData",
+      navigateTo: "HealthDetails",
     },
     {
       id: "3",

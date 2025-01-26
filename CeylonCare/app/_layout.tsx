@@ -10,6 +10,7 @@ import Onboarding from "./pages/Onboarding";
 import Home from "./pages/Home";
 import Profile from "./pages/profile/Profile";
 import ProfileDetails from "./pages/profile/ProfileDetails";
+import HealthDetails from "./pages/profile/HealthDetails";
 
 const Stack = createStackNavigator();
 
@@ -54,6 +55,11 @@ const StackNavigator = () => {
       <Stack.Screen
         name="ProfileDetails"
         component={ProfileDetails}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="HealthDetails"
+        component={HealthDetails}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>
