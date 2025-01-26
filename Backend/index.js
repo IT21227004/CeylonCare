@@ -6,6 +6,7 @@ const {
   sendResetPasswordEmail,
   getUserProfile,
   updateUserProfile,
+  logoutUser,
 } = require("./controllers/userController");
 const upload = require("./middleware/uploadMiddleware");
 const path = require("path");
@@ -23,6 +24,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads"))); // Serve s
 app.post("/register", registerUser);
 app.post("/login", loginUser);
 app.post("/forgetPassword", sendResetPasswordEmail);
+app.post("/logout", logoutUser);
 app.get("/user/:userId", getUserProfile);
 app.put("/user/:userId", upload.single("profilePhoto"), updateUserProfile);
 

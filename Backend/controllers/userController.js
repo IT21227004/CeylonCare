@@ -65,6 +65,20 @@ const sendResetPasswordEmail = async (req, res) => {
   }
 };
 
+// Logout User
+const logoutUser = async (req, res) => {
+  try {
+    console.log("Logout request received");
+
+    // Simulating session cleanup or token invalidation logic (if applicable)
+    res.status(200).json({ message: "User logged out successfully" });
+    console.log("Logout successful");
+  } catch (error) {
+    console.error("Error during logout:", error.message);
+    res.status(500).json({ error: "Failed to log out" });
+  }
+};
+
 // Get User Profile
 const getUserProfile = async (req, res) => {
   const { userId } = req.params;
@@ -122,6 +136,7 @@ module.exports = {
   registerUser,
   loginUser,
   sendResetPasswordEmail,
+  logoutUser,
   getUserProfile,
   updateUserProfile,
 };

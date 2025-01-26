@@ -6,9 +6,11 @@ import {
   Image,
   TouchableOpacity,
   Dimensions,
+  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
 
@@ -53,6 +55,57 @@ const Profile = ({ navigation }: any) => {
     },
   ];
 
+  const handleLogout = async () => {
+    try {
+      console.log("Attempting to log out...");
+
+      // Update the URL to match your backend endpoint
+      const response = await fetch("http://192.168.94.21:5000/logout", {
+        method: "POST",
+      });
+
+      console.log("Logout API response status:", response.status);
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log("Logout response:", data);
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      console.log("User logged out successfully");
+
+      // Clear AsyncStorage
+      await AsyncStorage.removeItem("userId");
+      console.log("AsyncStorage cleared");
+
+      // Navigate to Splash Screen
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Splash" }],
+      });
+    } catch (error) {
+      console.error("Error during logout:", error.message);
+      Alert.alert("Error", error.message);
+    }
+  };
+
+  const confirmLogout = () => {
+    Alert.alert(
+      "Are you sure?",
+      "Do you want to log out?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Yes, Logout", onPress: handleLogout },
+      ],
+      { cancelable: true }
+    );
+  };
+
   return (
     <View style={styles.container}>
       {/* Profile Header */}
@@ -85,7 +138,11 @@ const Profile = ({ navigation }: any) => {
           <TouchableOpacity
             key={section.id}
             style={styles.option}
-            onPress={() => navigation.navigate(section.navigateTo)}
+            onPress={
+              section.title === "Logout"
+                ? confirmLogout
+                : () => navigation.navigate(section.navigateTo)
+            }
           >
             <Image source={section.icon} style={styles.optionIcon} />
             <Text style={styles.optionText}>{section.title}</Text>
