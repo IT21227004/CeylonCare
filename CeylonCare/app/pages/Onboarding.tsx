@@ -93,6 +93,15 @@ const Onboarding = ({ navigation }: any) => {
 
   const renderItem = ({ item }: { item: any }) => (
     <View style={styles.slide}>
+      <View style={styles.ellipse}>
+        <LinearGradient
+          colors={["#ECF2FF", "rgba(236, 242, 255, 0)"]}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+          style={{ flex: 1, borderRadius: 9999 }}
+        />
+      </View>
+
       <Image source={item.image} style={styles.image} resizeMode="contain" />
       <Text style={styles.title}>{item.title}</Text>
       <Text style={styles.description}>{item.description}</Text>
@@ -161,78 +170,124 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+
+  skipButton: {
+    position: "absolute",
+    top: 50,
+    right: 25,
+    zIndex: 1,
+  },
+
+  skipText: {
+    fontSize: 15,
+    color: "#33E4DB",
+    fontWeight: 300,
+    fontFamily: "League Spartan",
+  },
+
+  // backButton: {
+  //   position: "absolute",
+  //   left: 15,
+  //   top: 30,
+  //   width: 40,
+  //   height: 40,
+  //   justifyContent: "center",
+  //   alignItems: "center",
+  // },
+
+  // backButtonImage: {
+  //   width: 24,
+  //   height: 24,
+  //   resizeMode: "contain",
+  // },
+
   slide: {
     width,
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 20,
   },
-  image: {
-    width: "80%",
-    height: "50%",
-    marginBottom: 20,
+
+  ellipse: {
+    position: "absolute",
+    width: 365,
+    height: 350,
+    top: 100,
+    bottom: 100,
+    transform: [{ rotate: "-180deg" }],
+    borderRadius: 9999,
   },
+
+  image: {
+    width: 300,
+    height: 250,
+  },
+
   title: {
-    fontSize: 24,
+    width: 280,
+    fontSize: 32,
     color: "#13CAD6",
-    fontWeight: "600",
+    fontWeight: 500,
     textAlign: "center",
     fontFamily: "League Spartan",
-    marginBottom: 10,
+    marginBottom: 30,
   },
+
   description: {
-    fontSize: 14,
+    width: 240,
+    fontSize: 12,
+    fontWeight: 300,
     color: "#252525",
     textAlign: "center",
     lineHeight: 20,
     marginBottom: 20,
   },
-  skipButton: {
-    position: "absolute",
-    top: 50,
-    right: 20,
-    zIndex: 1,
-  },
-  skipText: {
-    fontSize: 16,
-    color: "#13CAD6",
-    fontWeight: "500",
-    fontFamily: "League Spartan",
-  },
+
   pagination: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 20,
   },
+
   dot: {
     width: 10,
     height: 10,
-    borderRadius: 5,
+    borderRadius: 9999,
     backgroundColor: "#E9F6FE",
     marginHorizontal: 5,
   },
+
   activeDot: {
     backgroundColor: "#13CAD6",
   },
+
   inactiveDot: {
     backgroundColor: "#E9F6FE",
   },
+
   button: {
-    width: "80%",
+    paddingLeft: 12,
+    paddingRight: 12,
+    paddingTop: 8,
+    paddingBottom: 8,
+    borderRadius: 100,
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 50,
   },
+
   gradientButton: {
-    width: "100%",
+    width: 200,
     paddingVertical: 15,
     borderRadius: 30,
     justifyContent: "center",
     alignItems: "center",
   },
+
   buttonText: {
+    textAlign: "center",
     color: "white",
-    fontSize: 18,
-    fontWeight: "600",
+    fontSize: 24,
+    fontWeight: 500,
     fontFamily: "League Spartan",
   },
 });
