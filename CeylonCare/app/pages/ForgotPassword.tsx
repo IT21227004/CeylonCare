@@ -23,7 +23,7 @@ const ForgotPassword = ({ navigation }: any) => {
 
     try {
       console.log("Sending password reset request...");
-      const response = await fetch("http://192.168.94.61:5000/forgetPassword", {
+      const response = await fetch("http://192.168.60.22:5000/forgetPassword", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -147,36 +147,35 @@ const styles = StyleSheet.create({
   },
 
   formContainer: {
-    margin: 25,
+    margin: 20,
+    alignItems: "center"
   },
 
   instructions: {
-    width: 300,
     fontSize: 12,
     color: "#252525",
-    textAlign: "center",
-    alignItems: "center",
-    justifyContent: "center",
+    alignSelf: "flex-start",
     fontFamily: "League Spartan",
     fontWeight: 300,
+    marginTop: 5,
+    marginBottom: 35,
   },
 
   label: {
+    alignSelf: "flex-start",
     fontSize: 20,
     color: "#252525",
-    marginBottom: 5,
+    marginBottom: 10,
     fontWeight: "500",
     fontFamily: "League Spartan",
   },
 
   input: {
     backgroundColor: "#E9F6FE",
-    paddingHorizontal: 15,
     paddingVertical: 10,
     borderRadius: 13,
     borderWidth: 1,
     borderColor: "#E9F6FE",
-    marginBottom: 15,
     fontSize: 20,
     color: "#13CAD6",
     fontWeight: "400",
@@ -184,23 +183,32 @@ const styles = StyleSheet.create({
   },
 
   passwordInputContainer: {
-    position: "relative",
-    justifyContent: "center",
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#E9F6FE",
+    borderRadius: 13,
+    borderWidth: 1,
+    borderColor: "#E9F6FE",
+    marginBottom: 15,
+    paddingHorizontal: 15,
   },
 
   passwordInput: {
-    paddingRight: 40,
+    flex: 1,
+    fontSize: 20,
+    color: "#13CAD6",
+    fontFamily: "League Spartan",
   },
 
   eyeIcon: {
-    position: "absolute",
-    right: 15,
-    top: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 10,
   },
 
   resetButton: {
     width: 270,
-    height: 60,
+    height: 55,
     paddingLeft: 12,
     paddingRight: 12,
     paddingTop: 8,
@@ -209,7 +217,7 @@ const styles = StyleSheet.create({
     borderColor: "#33E4DB",
     borderWidth: 1,
     alignItems: "center",
-    marginTop: 20,
+    marginTop: 50,
     justifyContent: "center",
     gap: 10,
   },
