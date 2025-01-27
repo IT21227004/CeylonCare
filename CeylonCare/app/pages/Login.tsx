@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
-  Image
+  Image,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -26,7 +26,7 @@ const Login = ({ navigation }: any) => {
 
     try {
       console.log("Sending login request...");
-      const response = await fetch("http://192.168.60.22:5000/login", {
+      const response = await fetch("http://192.168.94.35:5000/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -63,9 +63,9 @@ const Login = ({ navigation }: any) => {
           onPress={() => navigation.goBack()}
         >
           <Image
-                      source={require("../../assets/images/backIcon.png")}
-                      style={styles.backButtonImage}
-                    />
+            source={require("../../assets/images/backIcon.png")}
+            style={styles.backButtonImage}
+          />
         </TouchableOpacity>
         <Text style={styles.headerText}>Log In</Text>
       </LinearGradient>
@@ -109,27 +109,27 @@ const Login = ({ navigation }: any) => {
           <Text style={styles.forgotPassword}>Forget Password</Text>
         </TouchableOpacity>
 
-<View style={styles.footerContainer}>
-<LinearGradient
+        <View style={styles.footerContainer}>
+          <LinearGradient
             colors={["#33E4DB", "#00BBD3"]}
             style={styles.loginButton}
           >
             <TouchableOpacity onPress={handleLogin}>
-          <Text style={styles.loginButtonText}>Log In</Text>
-        </TouchableOpacity>
+              <Text style={styles.loginButtonText}>Log In</Text>
+            </TouchableOpacity>
           </LinearGradient>
-      </View>
+        </View>
 
-      <Text style={styles.footer}>
-        Don’t have an account?{" "}
-        <Text
-          style={styles.link}
-          onPress={() => navigation.navigate("Register")}
-        >
-          Sign Up
+        <Text style={styles.footer}>
+          Don’t have an account?{" "}
+          <Text
+            style={styles.link}
+            onPress={() => navigation.navigate("Register")}
+          >
+            Sign Up
+          </Text>
         </Text>
-      </Text>
-</View>
+      </View>
     </ScrollView>
   );
 };
@@ -221,11 +221,11 @@ const styles = StyleSheet.create({
     borderRadius: 13,
     borderWidth: 1,
     borderColor: "#E9F6FE",
-    paddingEnd: 20
+    paddingEnd: 20,
   },
 
   passwordInput: {
-        flex: 1,
+    flex: 1,
     fontSize: 20,
     color: "#13CAD6",
     fontFamily: "League Spartan",
