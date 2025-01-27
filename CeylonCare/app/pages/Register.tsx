@@ -117,6 +117,7 @@ const Register = ({ navigation }: any) => {
           value={fullName}
           onChangeText={setFullName}
         />
+
         <Text style={styles.label}>Password</Text>
         <View style={(styles.input, styles.passwordInputContainer)}>
           <TextInput
@@ -137,6 +138,7 @@ const Register = ({ navigation }: any) => {
             />
           </TouchableOpacity>
         </View>
+
         <Text style={styles.label}>Email</Text>
         <TextInput
           style={styles.input}
@@ -146,6 +148,7 @@ const Register = ({ navigation }: any) => {
           keyboardType="email-address"
         />
         {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
+
         <Text style={styles.label}>Mobile Number</Text>
         <TextInput
           style={styles.input}

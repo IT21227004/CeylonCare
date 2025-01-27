@@ -22,7 +22,7 @@ const registerUser = async (req, res) => {
       mobileNumber,
       dob,
       email,
-      profilePhoto: null, // Default profile photo is null
+      profilePhoto: null,
       createdAt: new Date().toISOString(),
     });
 
@@ -42,9 +42,16 @@ const loginUser = async (req, res) => {
       email,
       password
     );
-    res
-      .status(200)
-      .json({ message: "Login successful", user: userCredential.user });
+    const user = userCredential.user;
+
+    // Return a login timestamp
+    const loginTimestamp = new Date().toISOString();
+
+    res.status(200).json({
+      message: "Login successful",
+      user: { uid: user.uid, email: user.email },
+      loginTimestamp,
+    });
   } catch (error) {
     console.error("Error logging in:", error.message);
     res.status(400).json({ error: error.message });

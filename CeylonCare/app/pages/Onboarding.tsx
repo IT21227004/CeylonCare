@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -9,6 +9,7 @@ import {
   FlatList,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
 
@@ -17,7 +18,8 @@ const onboardingData = [
     id: "1",
     image: require("../../assets/images/onBoarding 1.png"),
     title: "Enter Your Health Data",
-    description: "Share your health info to get personalized tips for a healthier you!",
+    description:
+      "Share your health info to get personalized tips for a healthier you!",
   },
   {
     id: "2",
@@ -36,6 +38,48 @@ const onboardingData = [
 const Onboarding = ({ navigation }: any) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
+
+  useEffect(() => {
+    const checkSessionValidity = async () => {
+      try {
+        const loginTimestamp = await AsyncStorage.getItem("loginTimestamp");
+
+        if (loginTimestamp) {
+          const now = new Date().getTime();
+          const savedTime = new Date(loginTimestamp).getTime();
+          const timeDifference = now - savedTime;
+
+          console.log("Session validity check in Onboarding:");
+          console.log("Login timestamp:", loginTimestamp);
+          console.log("Current time:", new Date(now).toISOString());
+          console.log("Time difference (ms):", timeDifference);
+
+          if (timeDifference >= 86400000) {
+            console.log("Session expired. Redirecting to Splash...");
+            await AsyncStorage.removeItem("userId");
+            await AsyncStorage.removeItem("loginTimestamp");
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "Splash" }],
+            });
+          }
+        } else {
+          console.log("No session found. Redirecting to Splash...");
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "Splash" }],
+          });
+        }
+      } catch (error) {
+        console.error(
+          "Error during session validation in Onboarding:",
+          error.message
+        );
+      }
+    };
+
+    checkSessionValidity();
+  }, [navigation]);
 
   const handleNext = () => {
     if (currentIndex < onboardingData.length - 1) {

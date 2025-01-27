@@ -36,21 +36,28 @@ const Login = ({ navigation }: any) => {
 
       if (!response.ok) {
         const errorData = await response.json();
+        console.error("Login error response:", errorData);
         throw new Error(errorData.error || "Login failed");
       }
 
       const responseData = await response.json();
-      const { user } = responseData;
+      const { user, loginTimestamp } = responseData;
 
-      console.log("Response from backend:", responseData);
+      console.log("Login successful. Storing session data...");
 
-      // Store userId in AsyncStorage
+      // Store userId and login timestamp
       await AsyncStorage.setItem("userId", user.uid);
+      await AsyncStorage.setItem("loginTimestamp", loginTimestamp);
 
       Alert.alert("Success", "Logged in successfully!");
-      navigation.navigate("Onboarding"); // Navigate to the app's main screen
-    } catch (error: any) {
+      navigation.navigate("Onboarding");
+    } catch (error) {
       console.error("Login error:", error.message);
+
+      // Clear any existing session data to avoid inconsistencies
+      await AsyncStorage.removeItem("userId");
+      await AsyncStorage.removeItem("loginTimestamp");
+
       Alert.alert("Error", error.message);
     }
   };
@@ -82,6 +89,7 @@ const Login = ({ navigation }: any) => {
           placeholder="example@example.com"
           value={email}
           onChangeText={setEmail}
+          keyboardType="email-address"
         />
 
         <Text style={styles.label}>Password</Text>
