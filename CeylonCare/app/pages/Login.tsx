@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
+  Image
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -61,7 +62,10 @@ const Login = ({ navigation }: any) => {
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name="arrow-back" size={24} color="white" />
+          <Image
+                      source={require("../../assets/images/backIcon.png")}
+                      style={styles.backButtonImage}
+                    />
         </TouchableOpacity>
         <Text style={styles.headerText}>Log In</Text>
       </LinearGradient>
@@ -105,9 +109,15 @@ const Login = ({ navigation }: any) => {
           <Text style={styles.forgotPassword}>Forget Password</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+<View style={styles.footerContainer}>
+<LinearGradient
+            colors={["#33E4DB", "#00BBD3"]}
+            style={styles.loginButton}
+          >
+            <TouchableOpacity onPress={handleLogin}>
           <Text style={styles.loginButtonText}>Log In</Text>
         </TouchableOpacity>
+          </LinearGradient>
       </View>
 
       <Text style={styles.footer}>
@@ -119,6 +129,7 @@ const Login = ({ navigation }: any) => {
           Sign Up
         </Text>
       </Text>
+</View>
     </ScrollView>
   );
 };
@@ -127,97 +138,161 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     backgroundColor: "white",
-    padding: 20,
   },
+
   header: {
-    height: 99,
+    height: 100,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
   },
+
   backButton: {
     position: "absolute",
     left: 15,
+    top: 30,
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
   },
+
+  backButtonImage: {
+    width: 24,
+    height: 24,
+    resizeMode: "contain",
+  },
+
   headerText: {
+    textAlign: "center",
     fontSize: 24,
-    color: "#FFFFFF",
+    color: "white",
     fontFamily: "League Spartan",
     fontWeight: "600",
   },
+
   formContainer: {
-    marginTop: 20,
+    margin: 25,
   },
+
   welcome: {
     fontSize: 24,
     color: "#13CAD6",
-    fontWeight: "600",
+    fontWeight: 600,
     fontFamily: "League Spartan",
-    marginBottom: 5,
+    marginBottom: 15,
   },
+
   subHeader: {
-    fontSize: 14,
+    fontSize: 12,
     color: "#252525",
+    fontFamily: "League Spartan",
+    fontWeight: 300,
     marginBottom: 20,
-    lineHeight: 20,
+    lineHeight: 15,
   },
+
   label: {
-    fontSize: 18,
+    fontSize: 20,
     color: "#252525",
-    marginBottom: 5,
+    marginTop: 25,
+    marginBottom: 10,
     fontWeight: "500",
     fontFamily: "League Spartan",
   },
+
   input: {
     backgroundColor: "#E9F6FE",
-    paddingHorizontal: 15,
     paddingVertical: 10,
+    paddingHorizontal: 15,
     borderRadius: 13,
     borderWidth: 1,
     borderColor: "#E9F6FE",
-    marginBottom: 15,
-    fontSize: 16,
+    fontSize: 20,
     color: "#13CAD6",
+    fontWeight: "400",
+    fontFamily: "League Spartan",
   },
+
   passwordInputContainer: {
-    position: "relative",
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#E9F6FE",
+    borderRadius: 13,
+    borderWidth: 1,
+    borderColor: "#E9F6FE",
+    paddingEnd: 20
   },
+
   passwordInput: {
-    paddingRight: 40,
+        flex: 1,
+    fontSize: 20,
+    color: "#13CAD6",
+    fontFamily: "League Spartan",
   },
+
   eyeIcon: {
-    position: "absolute",
-    right: 15,
-    top: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 10,
   },
+
   forgotPassword: {
+    fontSize: 12,
+    fontFamily: "League Spartan",
     color: "#13CAD6",
     fontWeight: "500",
-    marginBottom: 20,
+    marginTop: 15,
+    marginBottom: 50,
     textAlign: "right",
+    alignSelf: "flex-end",
   },
-  loginButton: {
-    backgroundColor: "#33E4DB",
-    borderRadius: 30,
+
+  footerContainer: {
+    flex: 1,
+    justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 15,
-    marginTop: 10,
+    gap: 10,
   },
+
+  loginButton: {
+    width: 190,
+    height: 50,
+    borderRadius: 100,
+    borderColor: "#33E4DB",
+    borderWidth: 1,
+    justifyContent: "center",
+    gap: 10,
+    alignItems: "center",
+    paddingLeft: 12,
+    paddingRight: 12,
+    paddingTop: 8,
+    paddingBottom: 8,
+  },
+
   loginButtonText: {
-    color: "#FFFFFF",
-    fontSize: 18,
+    textAlign: "center",
+    color: "white",
+    fontSize: 20,
     fontWeight: "600",
     fontFamily: "League Spartan",
   },
+
   footer: {
+    fontFamily: "League Spartan",
+    fontWeight: 300,
     fontSize: 12,
     color: "#252525",
     textAlign: "center",
-    marginTop: 20,
+    marginTop: 175,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
   },
+
   link: {
     color: "#13CAD6",
-    fontWeight: "500",
+    fontWeight: 500,
   },
 });
 
