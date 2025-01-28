@@ -47,7 +47,7 @@ const buttonData = [
   },
 ];
 
-const defaultProfileImage = require("../../assets/images/userIcon_prof.png");
+const defaultProfileImage = require("../../assets/images/defaultProfileImage.png");
 
 const Home = ({ navigation }: any) => {
   const [currentIndex, setCurrentIndex] = useState(0);

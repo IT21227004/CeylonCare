@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Dimensions,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -14,13 +15,16 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
 
+const defaultProfileImage = require("../../../assets/images/defaultProfileImage.png");
+
 const Profile = ({ navigation }: any) => {
-  const user = {
-    name: "Jane Doe",
-    phone: "+123 567 89000",
-    email: "janedoe@example.com",
-    profileImage: require("../../../assets/images/profile 1.png"),
-  };
+  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState({
+    fullName: "",
+    mobileNumber: "",
+    email: "",
+    profilePhoto: "",
+  });
 
   const sections = [
     {
@@ -39,7 +43,7 @@ const Profile = ({ navigation }: any) => {
       id: "3",
       title: "Payment Method",
       icon: require("../../../assets/images/paymentIcon_prof.png"),
-      navigateTo: "Profile",
+      navigateTo: "PaymentMethod",
     },
     {
       id: "4",
@@ -55,11 +59,33 @@ const Profile = ({ navigation }: any) => {
     },
   ];
 
+  useEffect(() => {
+    fetchUserProfile();
+  }, []);
+
+  const fetchUserProfile = async () => {
+    try {
+      console.log("Fetching user profile...");
+      const userId = await AsyncStorage.getItem("userId");
+      if (!userId) throw new Error("User ID not found");
+
+      const response = await fetch(`http://192.168.60.22:5000/user/${userId}`);
+      if (!response.ok) throw new Error(`Failed to fetch user profile: ${response.status}`);
+
+      const data = await response.json();
+      console.log("User profile fetched successfully:", data);
+      setUser(data);
+    } catch (error) {
+      console.error("Error fetching user profile:", error.message);
+      Alert.alert("Error", error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleLogout = async () => {
     try {
       console.log("Attempting to log out...");
-
-      // Update the URL to match your backend endpoint
       const response = await fetch("http://192.168.60.22:5000/logout", {
         method: "POST",
       });
@@ -106,6 +132,14 @@ const Profile = ({ navigation }: any) => {
     );
   };
 
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#00BBD3" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       {/* Profile Header */}
@@ -121,13 +155,22 @@ const Profile = ({ navigation }: any) => {
 
         <TouchableOpacity
           style={styles.profileSection}
-          onPress={() => navigation.navigate("Profile")}
+          onPress={() => navigation.navigate("ProfileDetails")}
         >
-          <Image source={user.profileImage} style={styles.profileImage} />
+          <Image
+            source={
+              user.profilePhoto
+                ? { uri: user.profilePhoto }
+                : defaultProfileImage
+            }
+            style={styles.profileImage}
+          />
           <View style={styles.profileDetails}>
-            <Text style={styles.profileName}>{user.name}</Text>
-            <Text style={styles.profileInfo}>{user.phone}</Text>
-            <Text style={styles.profileInfo}>{user.email}</Text>
+            <Text style={styles.profileName}>{user.fullName || "User Name"}</Text>
+            <Text style={styles.profileInfo}>
+              {user.mobileNumber || "Mobile Number"}
+            </Text>
+            <Text style={styles.profileInfo}>{user.email || "Email Address"}</Text>
           </View>
         </TouchableOpacity>
       </LinearGradient>
@@ -228,6 +271,11 @@ const styles = StyleSheet.create({
   arrow: {
     fontSize: 20,
     color: "#252525",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

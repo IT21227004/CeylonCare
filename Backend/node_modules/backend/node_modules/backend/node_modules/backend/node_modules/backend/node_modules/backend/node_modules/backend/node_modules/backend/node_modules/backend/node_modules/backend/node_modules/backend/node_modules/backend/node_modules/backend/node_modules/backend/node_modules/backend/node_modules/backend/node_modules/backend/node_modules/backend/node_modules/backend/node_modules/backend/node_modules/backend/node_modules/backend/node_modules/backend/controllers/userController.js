@@ -86,20 +86,21 @@ const logoutUser = async (req, res) => {
 const getUserProfile = async (req, res) => {
   const { userId } = req.params;
   try {
-    console.log("Fetching user profile for:", userId);
+    console.log(`Fetching profile for userId: ${userId}`);
     const userRef = doc(db, "users", userId);
     const userSnapshot = await getDoc(userRef);
 
     if (userSnapshot.exists()) {
-      console.log("User profile retrieved:", userId);
-      res.status(200).json(userSnapshot.data());
+      const userData = userSnapshot.data();
+      console.log("Profile data retrieved:", userData);
+      res.status(200).json(userData);
     } else {
       console.warn("User profile not found:", userId);
       res.status(404).json({ message: "User not found" });
     }
   } catch (error) {
-    console.error("Error fetching user profile:", error.message);
-    res.status(500).json({ error: "Failed to fetch user profile" });
+    console.error("Error fetching profile:", error.message);
+    res.status(500).json({ error: "Failed to fetch profile" });
   }
 };
 

@@ -15,7 +15,7 @@ import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Import the local default image
-const defaultProfileImage = require("../../../assets/images/userIcon_prof.png");
+const defaultProfileImage = require("../../../assets/images/defaultProfileImage.png");
 
 const ProfileDetails = () => {
   const [isEditing, setIsEditing] = useState(false);
