@@ -107,42 +107,42 @@ const HealthDetails = ({ navigation }: any) => {
     }
   };
 
-  const handleDeleteHealthData = async () => {
-    console.log("Deleting health data...");
-    const userId = await AsyncStorage.getItem("userId");
-    if (!userId) {
-      console.error("User ID not found in AsyncStorage");
-      return Alert.alert("Error", "User ID not found");
-    }
+  // const handleDeleteHealthData = async () => {
+  //   console.log("Deleting health data...");
+  //   const userId = await AsyncStorage.getItem("userId");
+  //   if (!userId) {
+  //     console.error("User ID not found in AsyncStorage");
+  //     return Alert.alert("Error", "User ID not found");
+  //   }
 
-    try {
-      const response = await fetch(
-        `http://192.168.60.22:5000/healthData/${userId}`,
-        {
-          method: "DELETE",
-        }
-      );
+  //   try {
+  //     const response = await fetch(
+  //       `http://192.168.60.22:5000/healthData/${userId}`,
+  //       {
+  //         method: "DELETE",
+  //       }
+  //     );
 
-      console.log("Delete response status:", response.status);
+  //     console.log("Delete response status:", response.status);
 
-      if (!response.ok) {
-        throw new Error(`Failed to delete health data: ${response.statusText}`);
-      }
+  //     if (!response.ok) {
+  //       throw new Error(`Failed to delete health data: ${response.statusText}`);
+  //     }
 
-      Alert.alert("Success", "Health data deleted successfully!");
-      setHealthData({
-        gender: "",
-        age: "",
-        weight: "",
-        height: "",
-        exerciseFrequency: "",
-        healthCondition: "",
-      });
-    } catch (error) {
-      console.error("Error deleting health data:", error.message);
-      Alert.alert("Error", "Failed to delete health data");
-    }
-  };
+  //     Alert.alert("Success", "Health data deleted successfully!");
+  //     setHealthData({
+  //       gender: "",
+  //       age: "",
+  //       weight: "",
+  //       height: "",
+  //       exerciseFrequency: "",
+  //       healthCondition: "",
+  //     });
+  //   } catch (error) {
+  //     console.error("Error deleting health data:", error.message);
+  //     Alert.alert("Error", "Failed to delete health data");
+  //   }
+  // };
 
   if (isLoading) {
     return (
@@ -188,14 +188,14 @@ const HealthDetails = ({ navigation }: any) => {
           </Text>
         </TouchableOpacity>
 
-        {isEditing && (
+        {/* {isEditing && (
           <TouchableOpacity
             style={[styles.button, styles.deleteButton]}
             onPress={handleDeleteHealthData}
           >
             <Text style={styles.buttonText}>Delete Data</Text>
           </TouchableOpacity>
-        )}
+        )} */}
       </View>
     </ScrollView>
   );
