@@ -4,12 +4,12 @@ const { getFirestore } = require("firebase/firestore");
 const { getStorage } = require("firebase/storage");
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBCMV00vJLRVMOPm_YPn-RNDkUEep3_hGw",
-  authDomain: "my-app-68ab3.firebaseapp.com",
-  projectId: "my-app-68ab3",
-  storageBucket: "my-app-68ab3.firebasestorage.app",
-  messagingSenderId: "741610664447",
-  appId: "1:741610664447:android:1b5ff1cff7aa51844777ca",
+  apiKey: "AIzaSyBVzqr_mU73jZR4ySMFEuCBz4gxnppiI2Q",
+  authDomain: "ceyloncare-bdefa.firebaseapp.com",
+  projectId: "ceyloncare-bdefa",
+  storageBucket: "ceyloncare-bdefa.firebasestorage.app",
+  messagingSenderId: "935171317625",
+  appId: "1:935171317625:android:227d446d43f688655dd9a8",
 };
 
 const app = initializeApp(firebaseConfig);

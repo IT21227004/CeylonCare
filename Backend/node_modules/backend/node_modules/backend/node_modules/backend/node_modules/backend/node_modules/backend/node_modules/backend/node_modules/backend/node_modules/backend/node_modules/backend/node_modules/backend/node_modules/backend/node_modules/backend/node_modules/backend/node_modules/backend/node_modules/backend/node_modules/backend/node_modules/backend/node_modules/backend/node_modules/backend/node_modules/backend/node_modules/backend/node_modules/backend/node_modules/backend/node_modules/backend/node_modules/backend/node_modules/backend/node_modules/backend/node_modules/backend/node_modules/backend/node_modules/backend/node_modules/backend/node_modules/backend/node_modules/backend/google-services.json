@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "741610664447",
-    "project_id": "my-app-68ab3",
-    "storage_bucket": "my-app-68ab3.firebasestorage.app"
+    "project_number": "935171317625",
+    "project_id": "ceyloncare-bdefa",
+    "storage_bucket": "ceyloncare-bdefa.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:741610664447:android:1b5ff1cff7aa51844777ca",
+        "mobilesdk_app_id": "1:935171317625:android:227d446d43f688655dd9a8",
         "android_client_info": {
           "package_name": "com.company.CeylonCare"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBCMV00vJLRVMOPm_YPn-RNDkUEep3_hGw"
+          "current_key": "AIzaSyCmapUHdN3FujbxhGMWeJu0aMpJf7BgYag"
         }
       ],
       "services": {
