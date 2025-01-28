@@ -2,11 +2,13 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
+// Set up profile photos storage path
 const profilePhotosPath = path.join(__dirname, "../uploads/profilePhotos");
 if (!fs.existsSync(profilePhotosPath)) {
   fs.mkdirSync(profilePhotosPath, { recursive: true });
 }
 
+// Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, profilePhotosPath);
@@ -26,4 +28,4 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({ storage, fileFilter });
 
-module.exports = upload;
+module.exports = upload; // Export multer instance directly

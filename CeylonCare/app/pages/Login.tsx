@@ -23,44 +23,50 @@ const Login = ({ navigation }: any) => {
       Alert.alert("Error", "Please fill in both email and password.");
       return;
     }
-
+  
     try {
       console.log("Sending login request...");
-      const response = await fetch("http://192.168.94.35:5000/login", {
+      const response = await fetch("http://192.168.60.22:5000/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
       });
-
+  
       if (!response.ok) {
         const errorData = await response.json();
         console.error("Login error response:", errorData);
         throw new Error(errorData.error || "Login failed");
       }
-
+  
       const responseData = await response.json();
       const { user, loginTimestamp } = responseData;
-
+  
       console.log("Login successful. Storing session data...");
-
-      // Store userId and login timestamp
+  
+      // Validate loginTimestamp before storing
+      if (!loginTimestamp) {
+        console.warn("No login timestamp received from server.");
+      } else {
+        await AsyncStorage.setItem("loginTimestamp", loginTimestamp);
+      }
+  
+      // Store userId safely
       await AsyncStorage.setItem("userId", user.uid);
-      await AsyncStorage.setItem("loginTimestamp", loginTimestamp);
-
+  
       Alert.alert("Success", "Logged in successfully!");
       navigation.navigate("Onboarding");
     } catch (error) {
       console.error("Login error:", error.message);
-
+  
       // Clear any existing session data to avoid inconsistencies
       await AsyncStorage.removeItem("userId");
       await AsyncStorage.removeItem("loginTimestamp");
-
+  
       Alert.alert("Error", error.message);
     }
-  };
+  };  
 
   return (
     <ScrollView contentContainerStyle={styles.container}>

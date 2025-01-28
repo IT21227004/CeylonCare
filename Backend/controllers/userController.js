@@ -10,11 +10,8 @@ const { auth, db } = require("../firebaseConfig");
 const registerUser = async (req, res) => {
   const { email, password, fullName, mobileNumber, dob } = req.body;
   try {
-    const userCredential = await createUserWithEmailAndPassword(
-      auth,
-      email,
-      password
-    );
+    console.log("Attempting to register user...");
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const userId = userCredential.user.uid;
 
     await setDoc(doc(db, "users", userId), {
@@ -26,6 +23,7 @@ const registerUser = async (req, res) => {
       createdAt: new Date().toISOString(),
     });
 
+    console.log("User registered successfully:", userId);
     res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
     console.error("Error registering user:", error.message);
@@ -37,20 +35,18 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
   try {
-    const userCredential = await signInWithEmailAndPassword(
-      auth,
-      email,
-      password
-    );
+    console.log("Attempting to log in user...");
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    // Return a login timestamp
+    // Add a timestamp for the login
     const loginTimestamp = new Date().toISOString();
 
+    console.log("Login successful for user:", user.uid);
     res.status(200).json({
       message: "Login successful",
       user: { uid: user.uid, email: user.email },
-      loginTimestamp,
+      loginTimestamp, // Include the timestamp in the response
     });
   } catch (error) {
     console.error("Error logging in:", error.message);
@@ -90,12 +86,15 @@ const logoutUser = async (req, res) => {
 const getUserProfile = async (req, res) => {
   const { userId } = req.params;
   try {
+    console.log("Fetching user profile for:", userId);
     const userRef = doc(db, "users", userId);
     const userSnapshot = await getDoc(userRef);
 
     if (userSnapshot.exists()) {
+      console.log("User profile retrieved:", userId);
       res.status(200).json(userSnapshot.data());
     } else {
+      console.warn("User profile not found:", userId);
       res.status(404).json({ message: "User not found" });
     }
   } catch (error) {
@@ -111,13 +110,12 @@ const updateUserProfile = async (req, res) => {
   const profilePhoto = req.file;
 
   try {
+    console.log("Attempting to update user profile:", userId);
     const userRef = doc(db, "users", userId);
     let profilePhotoUrl = null;
 
     if (profilePhoto) {
-      profilePhotoUrl = `${req.protocol}://${req.get(
-        "host"
-      )}/uploads/profilePhotos/${profilePhoto.filename}`;
+      profilePhotoUrl = `${req.protocol}://${req.get("host")}/uploads/profilePhotos/${profilePhoto.filename}`;
     }
 
     const updatedData = {
@@ -131,6 +129,8 @@ const updateUserProfile = async (req, res) => {
     }
 
     await updateDoc(userRef, updatedData);
+    console.log("User profile updated for:", userId);
+
     const updatedUser = await getDoc(userRef);
     res.status(200).json(updatedUser.data());
   } catch (error) {

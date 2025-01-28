@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,7 +7,10 @@ import {
   StyleSheet,
   Dimensions,
   FlatList,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import BottomNavBar from "../BottomNavBar";
 
@@ -44,8 +47,36 @@ const buttonData = [
   },
 ];
 
+const defaultProfileImage = require("../../assets/images/userIcon_prof.png");
+
 const Home = ({ navigation }: any) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [userData, setUserData] = useState({ fullName: "", profilePhoto: "" });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchUserProfile();
+  }, []);
+
+  const fetchUserProfile = async () => {
+    try {
+      console.log("Fetching user profile...");
+      const userId = await AsyncStorage.getItem("userId");
+      if (!userId) throw new Error("User ID not found");
+
+      const response = await fetch(`http://192.168.60.22:5000/user/${userId}`);
+      if (!response.ok) throw new Error("Failed to fetch user profile");
+
+      const data = await response.json();
+      console.log("User profile fetched successfully:", data);
+      setUserData(data);
+    } catch (error) {
+      console.error("Error fetching user profile:", error.message);
+      Alert.alert("Error", error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const renderCard = ({ item }: { item: any }) => (
     <TouchableOpacity
@@ -65,6 +96,14 @@ const Home = ({ navigation }: any) => {
     setCurrentIndex(index);
   };
 
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#00BBD3" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       {/* Welcome Section */}
@@ -72,10 +111,16 @@ const Home = ({ navigation }: any) => {
         <Text style={styles.greeting}>Hi, Welcome Back</Text>
         <TouchableOpacity onPress={() => navigation.navigate("Profile")}>
           <Image
-            source={require("../../assets/images/profile 1.png")}
+            source={
+              userData.profilePhoto
+                ? { uri: userData.profilePhoto }
+                : defaultProfileImage
+            }
             style={styles.profileImage}
           />
-          <Text style={styles.profileName}>Jane Doe</Text>
+          <Text style={styles.profileName}>
+            {userData.fullName || "User Name"}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -207,6 +252,7 @@ const styles = StyleSheet.create({
   inactiveDot: {
     backgroundColor: "#E9F6FE",
   },
+  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
 });
 
 export default Home;

@@ -21,6 +21,7 @@ app.use(cors({ origin: "*" }));
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads"))); // Serve static files
 
+// Routes
 app.post("/register", registerUser);
 app.post("/login", loginUser);
 app.post("/forgetPassword", sendResetPasswordEmail);
