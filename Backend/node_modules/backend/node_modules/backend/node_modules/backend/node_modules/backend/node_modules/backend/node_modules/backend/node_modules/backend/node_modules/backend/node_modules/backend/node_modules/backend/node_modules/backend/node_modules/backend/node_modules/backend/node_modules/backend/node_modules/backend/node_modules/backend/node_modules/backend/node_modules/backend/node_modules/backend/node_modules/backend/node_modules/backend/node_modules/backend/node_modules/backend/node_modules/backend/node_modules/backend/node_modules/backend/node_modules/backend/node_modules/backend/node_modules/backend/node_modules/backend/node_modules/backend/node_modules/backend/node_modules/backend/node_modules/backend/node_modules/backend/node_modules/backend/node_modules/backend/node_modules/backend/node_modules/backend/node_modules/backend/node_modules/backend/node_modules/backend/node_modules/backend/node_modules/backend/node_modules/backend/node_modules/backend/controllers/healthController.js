@@ -27,7 +27,7 @@ const getHealthData = async (req, res) => {
   }
 };
 
-// Update or Add Health Data
+// Update and Add Health Data
 const updateHealthData = async (req, res) => {
   const { userId } = req.params;
   const { gender, age, weight, height, exerciseFrequency, healthCondition } =
