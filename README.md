@@ -10,7 +10,7 @@ Sri Lanka faces a significant limitation of non-communicable diseases, including
 
 **Author:** IT21269370 - Pothuwila P. Y. R
 
-In the modern world, disorders such as diabetes and cholesterol are increasingly common due to unbalanced and unhealthy lifestyles. Early detection and accurate diagnostic methods are crucial for effective management and recovery.  
+In the modern world, disorders such as diabetes and cholesterol are increasingly common due to unbalanced and unhealthy lifestyles. Early detection and accurate diagnostic methods are crucial for effective management and recovery.
 This research introduces a machine learning-based approach to predict the diagnosis status and severity of these disorders based on user-input symptoms. By analyzing patient records, multiple machine learning models—including ensemble techniques—identify patterns and correlations between symptoms and these conditions.
 
 #### Key Features:
@@ -115,6 +115,12 @@ Backend -
 Firebase
 Cors
 Express
+
+flask 
+
+pandas 
+
+joblib
 
 Frontend -
 Expo
