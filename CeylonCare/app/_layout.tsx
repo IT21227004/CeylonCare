@@ -13,6 +13,7 @@ import ProfileDetails from "./pages/profile/ProfileDetails";
 import HealthDetails from "./pages/profile/HealthDetails";
 import PrivacyPolicy from "./pages/profile/PrivacyPolicy";
 import TherapyRecommendations from "./pages/AR_component/TherapyRecommendations";
+import TherapyDetails from "./pages/AR_component/TherapyDetails";
 
 const Stack = createStackNavigator();
 
@@ -78,11 +79,12 @@ const StackNavigator = () => {
         component={TherapyRecommendations}
         options={{ headerShown: false }}
       />
-      {/* <Stack.Screen
-        name="TherapyDetails"
-        component={TherapyDetails}
-        options={{ headerShown: false }}
-      /> */}
+      <Stack.Screen
+  name="TherapyDetails"
+  component={TherapyDetails}
+  initialParams={{ therapyName: "Default Therapy" }}
+  options={{ headerShown: false }}
+/>
       
     </Stack.Navigator>
   );

@@ -15,7 +15,7 @@ import { StackNavigationProp } from "@react-navigation/stack";
 // Define TypeScript props for navigation
 type RootStackParamList = {
   TherapyRecommendations: undefined;
-  TherapyDetails: { therapy: string };
+  TherapyDetails: { therapyName: string };
 };
 
 type TherapyRecommendationsProps = {
@@ -66,9 +66,9 @@ const TherapyRecommendations: React.FC<TherapyRecommendationsProps> = ({ navigat
   };
 
   // Navigate to TherapyDetails page when a user selects an option
-  const handleTherapySelect = (therapy: TherapyItem) => {
-    console.log("[DEBUG] User selected therapy:", therapy);
-    navigation.navigate("TherapyDetails", { therapy });
+  const handleTherapySelect = (therapyName: TherapyItem) => {
+    console.log("[DEBUG] User selected therapy:", therapyName);
+    navigation.navigate("TherapyDetails", { therapyName }); // ✅ Pass therapyName
   };
 
   if (isLoading) {
@@ -85,14 +85,14 @@ const TherapyRecommendations: React.FC<TherapyRecommendationsProps> = ({ navigat
       {recommendations.length === 0 ? (
         <Text style={styles.noDataText}>No recommendations found.</Text>
       ) : (
-        recommendations.map((therapy, index) => (
+        recommendations.map((therapyName, index) => (
           <TouchableOpacity
             key={index}
             style={styles.card}
-            onPress={() => handleTherapySelect(therapy)}
+            onPress={() => handleTherapySelect(therapyName)}
           >
             <Text style={styles.cardTitle}>Option {index + 1}</Text>
-            <Text style={styles.cardSubtitle}>{therapy}</Text>
+            <Text style={styles.cardSubtitle}>{therapyName}</Text>
             <Text style={styles.cardArrow}>›</Text>
           </TouchableOpacity>
         ))
