@@ -12,6 +12,7 @@ import Profile from "./pages/profile/Profile";
 import ProfileDetails from "./pages/profile/ProfileDetails";
 import HealthDetails from "./pages/profile/HealthDetails";
 import PrivacyPolicy from "./pages/profile/PrivacyPolicy";
+import TherapyRecommendations from "./pages/AR_component/TherapyRecommendations";
 
 const Stack = createStackNavigator();
 
@@ -48,6 +49,8 @@ const StackNavigator = () => {
         component={Home}
         options={{ headerShown: false }}
       />
+
+      {/* Profile */}
       <Stack.Screen
         name="Profile"
         component={Profile}
@@ -68,6 +71,19 @@ const StackNavigator = () => {
         component={PrivacyPolicy}
         options={{ headerShown: false }}
       />
+
+      {/* AR_Component */}
+      <Stack.Screen
+        name="TherapyRecommendations"
+        component={TherapyRecommendations}
+        options={{ headerShown: false }}
+      />
+      {/* <Stack.Screen
+        name="TherapyDetails"
+        component={TherapyDetails}
+        options={{ headerShown: false }}
+      /> */}
+      
     </Stack.Navigator>
   );
 };
