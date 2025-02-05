@@ -116,11 +116,13 @@ Firebase
 Cors
 Express
 
-flask 
+flask
 
-pandas 
+pandas
 
 joblib
+
+Axios
 
 Frontend -
 Expo

@@ -15,6 +15,7 @@ const {
   updateHealthData,
   deleteHealthData,
 } = require("./controllers/healthController");
+const { getARRecommendations } = require("./controllers/arController");
 
 const app = express();
 app.use(cors({ origin: "*" }));
@@ -32,6 +33,8 @@ app.put("/user/:userId", upload.single("profilePhoto"), updateUserProfile);
 app.get("/healthData/:userId", getHealthData);
 app.put("/healthData/:userId", updateHealthData);
 app.delete("/healthData/:userId", deleteHealthData);
+
+app.get("/ar_therapy/:userId", getARRecommendations)
 
 const PORT = 5000;
 app.listen(PORT, () => {
