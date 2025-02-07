@@ -43,7 +43,7 @@ except FileNotFoundError:
 
 # Define mappings for categorical features
 gender_mapping = {'Female': 0, 'Male': 1}
-health_condition_mapping = {'Diabetes': 0, 'Healthy': 1, 'Hypertension': 2, 'Pre-diabetes': 3}
+health_condition_mapping = {'Both': 0, 'Diabetes': 1, 'Healthy': 2, 'Hypertension': 3}
 exercise_frequency_mapping = {'Daily': 0, 'Rarely': 1, 'Weekly': 2}
 
 @app.route("/predict", methods=["POST"])
@@ -123,7 +123,7 @@ def generate_additional_therapies(dataset, predictions, health_condition, age, b
         #     (dataset['BMI'].between(bmi - 2, bmi + 2))
         # ]
 
-        print("[DEBUG] Filtered dataset for recommendations. Shape:", filtered_data.shape)
+        # print("[DEBUG] Filtered dataset for recommendations. Shape:", filtered_data.shape)
         
         # Extract all unique therapy recommendations from the filtered dataset
         therapy_columns = ['Therapy1', 'Therapy2', 'Therapy3']
@@ -132,8 +132,8 @@ def generate_additional_therapies(dataset, predictions, health_condition, age, b
         print("[DEBUG] Extracted Additional Therapies:", all_therapies)
 
         # Exclude already predicted therapies
-        additional_therapies = [therapy for therapy in all_therapies if therapy not in predictions.values()]
-        return additional_therapies[:5]  
+        # additional_therapies = [therapy for therapy in all_therapies if therapy not in predictions.values()]
+        # return additional_therapies[:5]  
 
     except Exception as e:
         print(f"[ERROR] Error during additional therapy generation: {e}")
