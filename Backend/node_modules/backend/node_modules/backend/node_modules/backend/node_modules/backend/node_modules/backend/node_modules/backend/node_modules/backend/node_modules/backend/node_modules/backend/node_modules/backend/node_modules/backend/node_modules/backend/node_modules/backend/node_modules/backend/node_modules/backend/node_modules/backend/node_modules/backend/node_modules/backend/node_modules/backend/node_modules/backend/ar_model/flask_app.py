@@ -117,11 +117,11 @@ def generate_additional_therapies(dataset, predictions, health_condition, age, b
 
     try:
         # Filter dataset based on user's health condition, age range, and BMI range
-        filtered_data = dataset[
-            (dataset['HealthCondition'] == health_condition) &
-            (dataset['Age'].between(age - 5, age + 5)) &
-            (dataset['BMI'].between(bmi - 2, bmi + 2))
-        ]
+        # filtered_data = dataset[
+        #     (dataset['HealthCondition'] == health_condition) &
+        #     (dataset['Age'].between(age - 5, age + 5)) &
+        #     (dataset['BMI'].between(bmi - 2, bmi + 2))
+        # ]
 
         print("[DEBUG] Filtered dataset for recommendations. Shape:", filtered_data.shape)
         
