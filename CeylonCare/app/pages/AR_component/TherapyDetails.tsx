@@ -52,7 +52,7 @@ const TherapyDetails: React.FC<TherapyDetailsScreenProps> = ({ route }) => {
       console.log(`[DEBUG] Normalized therapy name for request: ${normalizedTherapyName}`);
 
       const response = await axios.get(
-        `http://192.168.60.22:5000/therapy_details/${encodeURIComponent(normalizedTherapyName)}`
+        `http://192.168.200.25:5000/therapy_details/${encodeURIComponent(normalizedTherapyName)}`
       );
   
       console.log("[DEBUG] API Response:", JSON.stringify(response.data, null, 2));
