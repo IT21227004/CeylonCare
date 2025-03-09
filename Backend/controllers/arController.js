@@ -1,5 +1,5 @@
 const axios = require("axios");
-const { getDoc, doc } = require("firebase/firestore"); // Import Firestore functions
+const { getDoc, doc } = require("firebase/firestore");
 const { db } = require("../firebaseConfig");
 
 // Therapy Recommendation API
@@ -14,7 +14,6 @@ const getARRecommendations = async (req, res) => {
   console.log(`[DEBUG] Received request to fetch therapy for user: ${userId}`);
 
   try {
-    // Fetch user's health data from Firestore
     const response = await axios.get(`http://localhost:5000/healthData/${userId}`);
     console.log(`[DEBUG] Fetching health data for user: ${userId}, Response status: ${response.status}`);
 
@@ -35,7 +34,6 @@ const getARRecommendations = async (req, res) => {
     }
 
     res.status(200).json({ recommendations: flaskResponse.data.recommendations });
-
   } catch (error) {
     console.error(`[ERROR] Failed to fetch therapy recommendations: ${error.message}`);
     console.error("[DEBUG] Stack trace:", error.stack);
@@ -57,11 +55,10 @@ const getTherapyDetails = async (req, res) => {
   try {
     console.log("[DEBUG] Firestore db object:", db ? "Initialized" : "Not initialized");
 
-    // Normalize therapy name to match Firestore (case-sensitive, handle spaces)
     const normalizedTherapyName = therapyName
       .trim()
-      .replace(/%20/g, " ") // Replace URL-encoded spaces
-      .replace(/-/g, " "); // Replace hyphens with spaces if needed
+      .replace(/%20/g, " ")
+      .replace(/-/g, " ");
 
     console.log(`[DEBUG] Normalized therapy name: ${normalizedTherapyName}`);
 
@@ -81,6 +78,8 @@ const getTherapyDetails = async (req, res) => {
 
     const therapyDetails = therapySnapshot.data();
     console.log("[DEBUG] Fetched therapy details:", JSON.stringify(therapyDetails, null, 2));
+    console.log("[DEBUG] Reference video field in Firestore:", therapyDetails.reference_video || "Not provided");
+    console.log("[DEBUG] Reference video value (if any):", therapyDetails.reference_video ? `"${therapyDetails.reference_video}"` : "None");
 
     res.status(200).json(therapyDetails);
   } catch (error) {
