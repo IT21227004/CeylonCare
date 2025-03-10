@@ -14,6 +14,7 @@ import HealthDetails from "./pages/profile/HealthDetails";
 import PrivacyPolicy from "./pages/profile/PrivacyPolicy";
 import TherapyRecommendations from "./pages/AR_component/TherapyRecommendations";
 import TherapyDetails from "./pages/AR_component/TherapyDetails";
+import ARAvatarScreen from "./pages/AR_component/ARAvatarScreen";
 
 const Stack = createStackNavigator();
 
@@ -80,12 +81,16 @@ const StackNavigator = () => {
         options={{ headerShown: false }}
       />
       <Stack.Screen
-  name="TherapyDetails"
-  component={TherapyDetails}
-  initialParams={{ therapyName: "Default Therapy" }}
-  options={{ headerShown: false }}
-/>
-      
+        name="TherapyDetails"
+        component={TherapyDetails}
+        initialParams={{ therapyName: "Default Therapy" }}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ARAvatarScreen"
+        component={ARAvatarScreen}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 };

@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert, Platform } from "react-native";
-import { RouteProp, useRoute } from "@react-navigation/native";
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert, Platform, Pressable } from "react-native";
+import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import { WebView } from "react-native-webview";
 
 // Define Navigation Params Type
 type RootStackParamList = {
   TherapyDetails: { therapyName: string };
+  ARAvatarScreen: { arPoseUrl: string };
 };
 
 // Define Props Type
 type TherapyDetailsScreenProps = {
   route: RouteProp<RootStackParamList, "TherapyDetails">;
+  navigation: any; // Use a more specific type if possible based on your navigation setup
 };
 
 // Define Therapy Details Response Type
@@ -25,7 +27,7 @@ type TherapyDetailsResponse = {
   duration?: string;
 };
 
-const TherapyDetails: React.FC<TherapyDetailsScreenProps> = ({ route }) => {
+const TherapyDetails: React.FC<TherapyDetailsScreenProps> = ({ route, navigation }) => {
   const { therapyName } = route.params || { therapyName: "Default Therapy" };
   const [therapyDetails, setTherapyDetails] = useState<TherapyDetailsResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -45,7 +47,7 @@ const TherapyDetails: React.FC<TherapyDetailsScreenProps> = ({ route }) => {
     try {
       const normalizedTherapyName = therapyName.trim().replace(/%20/g, " ").replace(/-/g, " ");
       console.log(`[DEBUG] Normalized therapy name: ${normalizedTherapyName}`);
-      const requestUrl = `http://192.168.200.18:5000/therapy_details/${encodeURIComponent(normalizedTherapyName)}`;
+      const requestUrl = `http://192.168.60.22:5000/therapy_details/${encodeURIComponent(normalizedTherapyName)}`;
       console.log(`[DEBUG] Request URL: ${requestUrl}`);
 
       const response = await axios.get(requestUrl, { timeout: 10000 });
@@ -142,11 +144,30 @@ const TherapyDetails: React.FC<TherapyDetailsScreenProps> = ({ route }) => {
     `;
   };
 
+  // Navigate to AR Avatar Screen
+  const handleStartARAvatar = () => {
+    if (!therapyDetails?.ar_pose) {
+      console.warn(`[WARN] No ar_pose URL found for ${therapyName}`);
+      Alert.alert("Error", "AR pose data not available for this therapy.");
+      return;
+    }
+
+    console.log(`[INFO] Initiating navigation to ARAvatarScreen with ar_pose: ${therapyDetails.ar_pose}`);
+    try {
+      navigation.navigate("ARAvatarScreen", { arPoseUrl: therapyDetails.ar_pose });
+      console.log(`[DEBUG] Navigation to ARAvatarScreen attempted successfully`);
+    } catch (err) {
+      console.error(`[ERROR] Navigation failed: ${err.message}`);
+      console.log(`[DEBUG] Navigation error details: ${JSON.stringify({ message: err.message, stack: err.stack }, null, 2)}`);
+      Alert.alert("Navigation Error", "Failed to navigate to AR Avatar screen.");
+    }
+  };
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#00BBD3" />
-        {/* <Text style={styles.debugText}>[DEBUG] Loading therapy details...</Text> */}
+        <Text style={styles.debugText}>[DEBUG] Loading therapy details...</Text>
       </View>
     );
   }
@@ -186,6 +207,15 @@ const TherapyDetails: React.FC<TherapyDetailsScreenProps> = ({ route }) => {
             </View>
           )}
 
+          {/* Start AR Avatar Button */}
+          {therapyDetails.ar_pose ? (
+            <Pressable style={styles.arButton} onPress={handleStartARAvatar}>
+              <Text style={styles.arButtonText}>Start AR Avatar</Text>
+            </Pressable>
+          ) : (
+            <Text style={styles.errorText}>AR Avatar not available for this therapy.</Text>
+          )}
+
           <Text style={styles.stepsTitle}>Steps to Follow:</Text>
           {therapyDetails.steps.map((step, i) => (
             <Text key={i} style={styles.stepItem}>{step}</Text>
@@ -196,7 +226,7 @@ const TherapyDetails: React.FC<TherapyDetailsScreenProps> = ({ route }) => {
             <Text key={i} style={styles.benefitItem}>{benefit}</Text>
           ))}
 
-          {therapyDetails.ar_pose && <Text style={styles.arPose}>AR Pose: {therapyDetails.ar_pose}</Text>}
+          {/* {therapyDetails.ar_pose && <Text style={styles.arPose}>AR Pose: {therapyDetails.ar_pose}</Text>} */}
         </>
       ) : (
         <Text style={styles.errorText}>{error || "Therapy details not found."}</Text>
@@ -222,6 +252,20 @@ const styles = StyleSheet.create({
   video: { width: "100%", height: 200, borderRadius: 10 },
   errorText: { fontSize: 16, textAlign: "center", color: "red" },
   debugText: { fontSize: 14, color: "blue", textAlign: "center", marginBottom: 5 },
+  arButton: {
+    backgroundColor: "#00BBD3",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignSelf: "center",
+    marginVertical: 15,
+  },
+  arButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
 });
 
 export default TherapyDetails;
