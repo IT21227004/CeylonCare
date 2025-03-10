@@ -13,7 +13,7 @@ type RootStackParamList = {
 // Define Props Type
 type TherapyDetailsScreenProps = {
   route: RouteProp<RootStackParamList, "TherapyDetails">;
-  navigation: any; // Use a more specific type if possible based on your navigation setup
+  navigation: any;
 };
 
 // Define Therapy Details Response Type
@@ -202,6 +202,8 @@ const TherapyDetails: React.FC<TherapyDetailsScreenProps> = ({ route, navigation
                 onLoad={(s) => console.log(`[DEBUG] WebView load event: ${JSON.stringify(s.nativeEvent, null, 2)}`)}
                 onLoadEnd={() => console.log(`[DEBUG] WebView load ended`)}
                 onMessage={(e) => console.log(`[DEBUG] WebView message: ${e.nativeEvent.data}`)}
+                onHttpError={(s) => console.error(`[ERROR] WebView HTTP error: ${JSON.stringify(s.nativeEvent, null, 2)}`)}
+                onRenderProcessGone={(e) => console.error(`[ERROR] WebView render process gone: ${JSON.stringify(e.nativeEvent, null, 2)}`)}
               />
               {error && <Text style={styles.errorText}>{error}</Text>}
             </View>
@@ -225,8 +227,6 @@ const TherapyDetails: React.FC<TherapyDetailsScreenProps> = ({ route, navigation
           {therapyDetails.benefits.map((benefit, i) => (
             <Text key={i} style={styles.benefitItem}>{benefit}</Text>
           ))}
-
-          {/* {therapyDetails.ar_pose && <Text style={styles.arPose}>AR Pose: {therapyDetails.ar_pose}</Text>} */}
         </>
       ) : (
         <Text style={styles.errorText}>{error || "Therapy details not found."}</Text>
@@ -246,7 +246,6 @@ const styles = StyleSheet.create({
   stepItem: { fontSize: 16, marginBottom: 5, color: "#333" },
   benefitsTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 10, color: "#00BBD3" },
   benefitItem: { fontSize: 16, marginBottom: 5, color: "#333" },
-  arPose: { fontSize: 16, textAlign: "center", color: "#666", marginBottom: 10 },
   videoContainer: { marginVertical: 15 },
   videoTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 10, color: "#00BBD3", textAlign: "center" },
   video: { width: "100%", height: 200, borderRadius: 10 },
