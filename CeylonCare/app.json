@@ -3,9 +3,7 @@
     "name": "CeylonCare",
     "slug": "CeylonCare",
     "version": "1.0.0",
-    "assetBundlePatterns": [
-      "assets/videos/*"
-    ],
+    "assetBundlePatterns": ["assets/videos/*"],
     "orientation": "portrait",
     "icon": "",
     "scheme": "myapp",
@@ -18,8 +16,7 @@
       "adaptiveIcon": {
         "foregroundImage": "",
         "backgroundColor": "#ffffff"
-      },
-      "permissions": ["CAMERA"]
+      }
     },
     "web": {
       "bundler": "metro",
@@ -38,7 +35,13 @@
         }
       ],
       "expo-asset",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow this app to use the camera for AR features."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

@@ -10,62 +10,72 @@ import {
   Image,
 } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import moment from "moment";
+import { format } from "date-fns"; // Replace moment with date-fns
 import { LinearGradient } from "expo-linear-gradient";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
 const Register = ({ navigation }: any) => {
   const [fullName, setFullName] = useState("");
-
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
-
   const [mobileNumber, setMobileNumber] = useState("");
   const [mobileError, setMobileError] = useState("");
-
   const [dob, setDob] = useState("");
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
+  // Log initial state for debugging
+  console.log("[DEBUG] Register component mounted");
+  console.log("[DEBUG] Initial fullName:", fullName);
+  console.log("[DEBUG] Initial email:", email);
+  console.log("[DEBUG] Initial mobileNumber:", mobileNumber);
+  console.log("[DEBUG] Initial dob:", dob);
+
   const validateEmail = (input: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Regex for validating email
+    console.log("[DEBUG] Validating email:", input);
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (emailRegex.test(input)) {
-      setEmailError(""); // Clear error if valid
+      setEmailError("");
+      console.log("[DEBUG] Email is valid");
     } else {
       setEmailError("Please enter a valid email address");
+      console.log("[DEBUG] Email is invalid");
     }
     setEmail(input);
   };
 
   const validateMobileNumber = (input: string) => {
-    const mobileRegex = /^[0-9]{10}$/; // Regex for exactly 10 numeric digits
+    console.log("[DEBUG] Validating mobile number:", input);
+    const mobileRegex = /^[0-9]{10}$/;
     if (mobileRegex.test(input)) {
-      setMobileError(""); // Clear error if valid
+      setMobileError("");
+      console.log("[DEBUG] Mobile number is valid");
     } else {
       setMobileError("Please enter a valid 10-digit mobile number");
+      console.log("[DEBUG] Mobile number is invalid");
     }
     setMobileNumber(input);
   };
 
   const handleSignUp = async () => {
-    console.log("Sign Up button clicked");
+    console.log("[INFO] Sign Up button clicked");
+    console.log("[DEBUG] Form data:", { fullName, email, password, mobileNumber, dob });
 
     if (!fullName || !password || !email || !mobileNumber || !dob) {
       Alert.alert("Error", "Please fill in all fields");
-      console.log("Validation failed: missing fields");
+      console.log("[ERROR] Validation failed: Missing fields");
       return;
     }
 
-    if (emailError) {
-      Alert.alert("Error", emailError); // Prevent signup if there's an email error
-      console.log("Validation failed: invalid email");
+    if (emailError || mobileError) {
+      Alert.alert("Error", emailError || mobileError);
+      console.log("[ERROR] Validation failed: Invalid email or mobile number");
       return;
     }
 
     try {
-      console.log("Sending request to backend...");
+      console.log("[DEBUG] Sending request to backend...");
       const response = await fetch("http://192.168.60.22:5000/register", {
         method: "POST",
         headers: {
@@ -74,23 +84,28 @@ const Register = ({ navigation }: any) => {
         body: JSON.stringify({ email, password, fullName, mobileNumber, dob }),
       });
 
+      console.log("[DEBUG] Response status:", response.status);
       const responseData = await response.json();
-      console.log("Response from backend:", responseData);
+      console.log("[DEBUG] Response from backend:", responseData);
 
       if (response.ok) {
         Alert.alert("Success", "Account created successfully");
+        console.log("[INFO] Registration successful, navigating to Login");
         navigation.navigate("Login");
       } else {
         throw new Error(responseData.error || "Registration failed");
       }
     } catch (error: any) {
-      console.error("Error in Sign Up:", error.message);
+      console.error("[ERROR] Sign Up failed:", error.message);
       Alert.alert("Error", error.message);
     }
   };
 
   const handleConfirmDate = (date: Date) => {
-    setDob(moment(date).format("DD / MM / YYYY"));
+    console.log("[DEBUG] Date selected:", date);
+    const formattedDate = format(date, "dd / MM / yyyy"); // Use date-fns format
+    console.log("[DEBUG] Formatted date:", formattedDate);
+    setDob(formattedDate);
     setDatePickerVisibility(false);
   };
 
@@ -99,7 +114,10 @@ const Register = ({ navigation }: any) => {
       <LinearGradient colors={["#33E4DB", "#00BBD3"]} style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => navigation.goBack()}
+          onPress={() => {
+            console.log("[DEBUG] Back button pressed");
+            navigation.goBack();
+          }}
         >
           <Image
             source={require("../../assets/images/backIcon.png")}
@@ -115,20 +133,29 @@ const Register = ({ navigation }: any) => {
           style={styles.input}
           placeholder="John Doe"
           value={fullName}
-          onChangeText={setFullName}
+          onChangeText={(text) => {
+            console.log("[DEBUG] Full name changed:", text);
+            setFullName(text);
+          }}
         />
 
         <Text style={styles.label}>Password</Text>
-        <View style={(styles.input, styles.passwordInputContainer)}>
+        <View style={[styles.input, styles.passwordInputContainer]}>
           <TextInput
-            style={[styles.passwordInput]}
+            style={styles.passwordInput}
             placeholder="********"
             secureTextEntry={!showPassword}
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(text) => {
+              console.log("[DEBUG] Password changed (hidden for security)");
+              setPassword(text);
+            }}
           />
           <TouchableOpacity
-            onPress={() => setShowPassword(!showPassword)}
+            onPress={() => {
+              console.log("[DEBUG] Toggling password visibility");
+              setShowPassword(!showPassword);
+            }}
             style={styles.eyeIcon}
           >
             <Ionicons
@@ -160,10 +187,14 @@ const Register = ({ navigation }: any) => {
         {mobileError ? (
           <Text style={styles.errorText}>{mobileError}</Text>
         ) : null}
+
         <Text style={styles.label}>Date of Birth</Text>
         <TouchableOpacity
           style={styles.input}
-          onPress={() => setDatePickerVisibility(true)}
+          onPress={() => {
+            console.log("[DEBUG] Opening date picker");
+            setDatePickerVisibility(true);
+          }}
         >
           <Text style={{ color: dob ? "#13CAD6" : "#A9A9A9" }}>
             {dob || "DD / MM / YYYY"}
@@ -173,7 +204,10 @@ const Register = ({ navigation }: any) => {
           isVisible={isDatePickerVisible}
           mode="date"
           onConfirm={handleConfirmDate}
-          onCancel={() => setDatePickerVisibility(false)}
+          onCancel={() => {
+            console.log("[DEBUG] Date picker cancelled");
+            setDatePickerVisibility(false);
+          }}
         />
 
         <View style={styles.footerContainer}>
@@ -181,14 +215,20 @@ const Register = ({ navigation }: any) => {
             By continuing, you agree to{" "}
             <Text
               style={styles.link}
-              onPress={() => navigation.navigate("PrivacyPolicy")}
+              onPress={() => {
+                console.log("[DEBUG] Navigating to PrivacyPolicy from Terms");
+                navigation.navigate("PrivacyPolicy");
+              }}
             >
               Terms of Use
             </Text>{" "}
             and{" "}
             <Text
               style={styles.link}
-              onPress={() => navigation.navigate("PrivacyPolicy")}
+              onPress={() => {
+                console.log("[DEBUG] Navigating to PrivacyPolicy from Privacy");
+                navigation.navigate("PrivacyPolicy");
+              }}
             >
               Privacy Policy
             </Text>
@@ -209,7 +249,10 @@ const Register = ({ navigation }: any) => {
           Already have an account?{" "}
           <Text
             style={styles.link}
-            onPress={() => navigation.navigate("Login")}
+            onPress={() => {
+              console.log("[DEBUG] Navigating to Login from footer");
+              navigation.navigate("Login");
+            }}
           >
             Log In
           </Text>
@@ -224,14 +267,12 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     backgroundColor: "white",
   },
-
   header: {
     height: 100,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
   },
-
   backButton: {
     position: "absolute",
     left: 15,
@@ -241,13 +282,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
   backButtonImage: {
     width: 24,
     height: 24,
     resizeMode: "contain",
   },
-
   headerText: {
     textAlign: "center",
     fontSize: 24,
@@ -255,11 +294,9 @@ const styles = StyleSheet.create({
     fontFamily: "League Spartan",
     fontWeight: "600",
   },
-
   formContainer: {
     margin: 25,
   },
-
   label: {
     fontSize: 20,
     color: "#252525",
@@ -267,7 +304,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     fontFamily: "League Spartan",
   },
-
   input: {
     backgroundColor: "#E9F6FE",
     paddingHorizontal: 15,
@@ -281,7 +317,6 @@ const styles = StyleSheet.create({
     fontWeight: "400",
     fontFamily: "League Spartan",
   },
-
   passwordInputContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -292,33 +327,28 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     paddingHorizontal: 15,
   },
-
   passwordInput: {
     flex: 1,
     fontSize: 20,
     color: "#13CAD6",
     fontFamily: "League Spartan",
   },
-
   eyeIcon: {
     justifyContent: "center",
     alignItems: "center",
     marginLeft: 10,
   },
-
   errorText: {
     color: "red",
     fontSize: 12,
     marginBottom: 10,
   },
-
   footerContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     gap: 10,
   },
-
   terms: {
     width: 200,
     fontSize: 12,
@@ -327,14 +357,12 @@ const styles = StyleSheet.create({
     marginTop: 15,
     marginBottom: 25,
     fontFamily: "League Spartan",
-    fontWeight: 300,
+    fontWeight: "300",
   },
-
   link: {
     color: "#13CAD6",
-    fontWeight: 500,
+    fontWeight: "500",
   },
-
   signUpButton: {
     width: 190,
     height: 50,
@@ -349,7 +377,6 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 8,
   },
-
   signUpButtonText: {
     textAlign: "center",
     color: "white",
@@ -357,10 +384,9 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontFamily: "League Spartan",
   },
-
   footer: {
     fontFamily: "League Spartan",
-    fontWeight: 300,
+    fontWeight: "300",
     fontSize: 12,
     color: "#252525",
     textAlign: "center",
