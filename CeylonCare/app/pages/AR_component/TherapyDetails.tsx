@@ -3,11 +3,12 @@ import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert, Platform,
 import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import { WebView } from "react-native-webview";
+import * as ScreenOrientation from 'expo-screen-orientation';
 
 // Define Navigation Params Type
 type RootStackParamList = {
   TherapyDetails: { therapyName: string };
-  ARAvatarScreen: { arPoseUrl: string };
+  ARAvatarScreen: { arPoseUrl: string; therapyName: string };
 };
 
 // Define Props Type
@@ -34,6 +35,25 @@ const TherapyDetails: React.FC<TherapyDetailsScreenProps> = ({ route, navigation
   const [error, setError] = useState<string | null>(null);
   const [videoUri, setVideoUri] = useState<string | null>(null);
 
+  // Ensure portrait orientation on mount
+  useEffect(() => {
+    const setPortraitOrientation = async () => {
+      try {
+        console.log('[DEBUG] Ensuring portrait orientation for TherapyDetails');
+        const currentOrientation = await ScreenOrientation.getOrientationAsync();
+        console.log('[DEBUG] Current orientation on mount:', currentOrientation);
+        await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+        const newOrientation = await ScreenOrientation.getOrientationAsync();
+        console.log('[INFO] Orientation set to portrait for TherapyDetails, new orientation:', newOrientation);
+      } catch (error) {
+        console.error('[ERROR] Failed to set portrait orientation:', error.message);
+        console.log('[DEBUG] Orientation set error details:', JSON.stringify({ message: error.message, stack: error.stack }, null, 2));
+      }
+    };
+
+    setPortraitOrientation();
+  }, []);
+
   useEffect(() => {
     fetchTherapyDetails();
   }, [therapyName]);
@@ -47,7 +67,7 @@ const TherapyDetails: React.FC<TherapyDetailsScreenProps> = ({ route, navigation
     try {
       const normalizedTherapyName = therapyName.trim().replace(/%20/g, " ").replace(/-/g, " ");
       console.log(`[DEBUG] Normalized therapy name: ${normalizedTherapyName}`);
-      const requestUrl = `http://192.168.8.134:5000/therapy_details/${encodeURIComponent(normalizedTherapyName)}`;
+      const requestUrl = `http://192.168.60.22:5000/therapy_details/${encodeURIComponent(normalizedTherapyName)}`;
       console.log(`[DEBUG] Request URL: ${requestUrl}`);
 
       const response = await axios.get(requestUrl, { timeout: 10000 });
@@ -152,9 +172,12 @@ const TherapyDetails: React.FC<TherapyDetailsScreenProps> = ({ route, navigation
       return;
     }
 
-    console.log(`[INFO] Initiating navigation to ARAvatarScreen with ar_pose: ${therapyDetails.ar_pose}`);
+    console.log(`[INFO] Initiating navigation to ARAvatarScreen with ar_pose: ${therapyDetails.ar_pose} and therapyName: ${therapyName}`);
     try {
-      navigation.navigate("ARAvatarScreen", { arPoseUrl: therapyDetails.ar_pose });
+      navigation.navigate("ARAvatarScreen", {
+        arPoseUrl: therapyDetails.ar_pose,
+        therapyName: therapyName,
+      });
       console.log(`[DEBUG] Navigation to ARAvatarScreen attempted successfully`);
     } catch (err) {
       console.error(`[ERROR] Navigation failed: ${err.message}`);

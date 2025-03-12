@@ -15,8 +15,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import * as ScreenOrientation from 'expo-screen-orientation';
 
 const ARAvatarScreen = ({ route, navigation }) => {
-  const { arPoseUrl } = route.params || {};
-  console.log('[DEBUG] Route params received:', route.params);
+  const { arPoseUrl, therapyName } = route.params || {};
+  console.log('[DEBUG] Route params received:', JSON.stringify(route.params, null, 2));
 
   // State variables
   const [permission, requestPermission] = useCameraPermissions();
@@ -32,18 +32,28 @@ const ARAvatarScreen = ({ route, navigation }) => {
     const lockOrientation = async () => {
       try {
         console.log('[DEBUG] Locking screen to landscape');
+        const currentOrientation = await ScreenOrientation.getOrientationAsync();
+        console.log('[DEBUG] Current orientation before locking:', currentOrientation);
         await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+        const newOrientation = await ScreenOrientation.getOrientationAsync();
+        console.log('[INFO] Screen locked to landscape, new orientation:', newOrientation);
       } catch (error) {
-        console.error('[ERROR] Failed to lock screen orientation:', error);
+        console.error('[ERROR] Failed to lock screen orientation:', error.message);
+        console.log('[DEBUG] Orientation lock error details:', JSON.stringify({ message: error.message, stack: error.stack }, null, 2));
       }
     };
 
     const unlockOrientation = async () => {
       try {
         console.log('[DEBUG] Unlocking screen orientation on unmount');
+        const currentOrientation = await ScreenOrientation.getOrientationAsync();
+        console.log('[DEBUG] Current orientation before unlocking:', currentOrientation);
         await ScreenOrientation.unlockAsync();
+        const newOrientation = await ScreenOrientation.getOrientationAsync();
+        console.log('[INFO] Screen orientation unlocked, new orientation:', newOrientation);
       } catch (error) {
-        console.error('[ERROR] Failed to unlock screen orientation:', error);
+        console.error('[ERROR] Failed to unlock screen orientation:', error.message);
+        console.log('[DEBUG] Orientation unlock error details:', JSON.stringify({ message: error.message, stack: error.stack }, null, 2));
       }
     };
 
@@ -66,6 +76,7 @@ const ARAvatarScreen = ({ route, navigation }) => {
     if (!Camera.CameraView || typeof Camera.CameraView !== 'function') {
       const errorMsg = '[ERROR] CameraView component is invalid or not a function';
       console.error(errorMsg, Camera);
+      console.log('[DEBUG] Camera validation error details:', JSON.stringify(Camera, null, 2));
       setCameraError(errorMsg);
     } else {
       console.log('[INFO] CameraView component validated successfully');
@@ -75,6 +86,7 @@ const ARAvatarScreen = ({ route, navigation }) => {
     console.log('[DEBUG] Checking WebView module:', WebView);
     if (!WebView || typeof WebView !== 'object') {
       console.error('[ERROR] WebView component is invalid:', WebView);
+      console.log('[DEBUG] WebView validation error details:', JSON.stringify(WebView, null, 2));
       setIsWebViewValid(false);
     } else {
       console.log('[INFO] WebView component validated successfully');
@@ -84,19 +96,31 @@ const ARAvatarScreen = ({ route, navigation }) => {
     // Validate navigation prop
     if (!navigation || typeof navigation.navigate !== 'function') {
       console.error('[ERROR] Navigation prop is invalid or navigate function is missing');
+      console.log('[DEBUG] Navigation validation error details:', JSON.stringify(navigation, null, 2));
     } else {
       console.log('[INFO] Navigation prop validated successfully');
     }
-  }, [navigation]);
+
+    // Validate therapyName in route params
+    console.log('[DEBUG] Checking therapyName in route params:', therapyName);
+    if (!therapyName) {
+      console.warn('[WARN] therapyName is undefined or missing in route params');
+      console.log('[DEBUG] Missing therapyName details:', JSON.stringify(route.params, null, 2));
+    } else {
+      console.log('[INFO] therapyName is present:', therapyName);
+    }
+  }, [navigation, therapyName]);
 
   // Debug and validate arPoseUrl on change
   useEffect(() => {
     console.log('[DEBUG] arPoseUrl received:', arPoseUrl);
     if (!arPoseUrl) {
       console.warn('[WARN] arPoseUrl is undefined or empty');
+      console.log('[DEBUG] Missing arPoseUrl details:', JSON.stringify(route.params, null, 2));
       setWebViewError('arPoseUrl is missing');
     } else if (typeof arPoseUrl !== 'string') {
       console.error('[ERROR] arPoseUrl is not a string:', arPoseUrl);
+      console.log('[DEBUG] Invalid arPoseUrl type details:', JSON.stringify({ arPoseUrl, type: typeof arPoseUrl }, null, 2));
       setWebViewError('arPoseUrl is not a string');
     } else {
       console.log('[INFO] arPoseUrl is a valid string');
@@ -104,7 +128,8 @@ const ARAvatarScreen = ({ route, navigation }) => {
         new URL(arPoseUrl);
         console.log('[INFO] arPoseUrl is a valid URL');
       } catch (error) {
-        console.error('[ERROR] arPoseUrl is not a valid URL:', error);
+        console.error('[ERROR] arPoseUrl is not a valid URL:', error.message);
+        console.log('[DEBUG] URL validation error details:', JSON.stringify({ message: error.message, stack: error.stack }, null, 2));
         setWebViewError('Invalid arPoseUrl format');
       }
     }
@@ -124,16 +149,18 @@ const ARAvatarScreen = ({ route, navigation }) => {
       console.log('[DEBUG] Starting camera permission request');
       requestPermission()
         .then((response) => {
-          console.log('[DEBUG] Permission request response:', response);
+          console.log('[DEBUG] Permission request response:', JSON.stringify(response, null, 2));
           if (response.status === 'granted') {
             console.log('[INFO] Camera permission granted');
           } else {
             console.warn('[WARN] Camera permission denied or undetermined:', response.status);
+            console.log('[DEBUG] Permission denied details:', JSON.stringify(response, null, 2));
             setCameraError('Camera permission denied');
           }
         })
         .catch((error) => {
-          console.error('[ERROR] Failed to request camera permission:', error);
+          console.error('[ERROR] Failed to request camera permission:', error.message);
+          console.log('[DEBUG] Permission request error details:', JSON.stringify({ message: error.message, stack: error.stack }, null, 2));
           setCameraError('Permission request failed');
         });
     }
@@ -147,21 +174,41 @@ const ARAvatarScreen = ({ route, navigation }) => {
     });
   };
 
-  // Navigate to TherapyDetail page
-  const handleEndSession = () => {
+  // Navigate to TherapyDetail page and set orientation to portrait
+  const handleEndSession = async () => {
     console.log('[DEBUG] End button pressed');
     try {
-      if (navigation && navigation.navigate) {
-        console.log('[DEBUG] Navigating to TherapyDetail');
-        navigation.navigate('TherapyDetail', {
-          // Placeholder for any params needed by TherapyDetail
-          // e.g., therapyId: '123'
-        });
-      } else {
-        console.error('[ERROR] Navigation prop is undefined or navigate function is missing');
+      // Check for therapyName
+      if (!therapyName) {
+        console.error('[ERROR] therapyName is missing, cannot navigate to TherapyDetail');
+        console.log('[DEBUG] Missing therapyName details:', JSON.stringify(route.params, null, 2));
+        return;
       }
+
+      // Validate navigation prop
+      if (!navigation || typeof navigation.navigate !== 'function') {
+        console.error('[ERROR] Navigation prop is undefined or navigate function is missing');
+        console.log('[DEBUG] Navigation validation error details:', JSON.stringify(navigation, null, 2));
+        return;
+      }
+
+      // Set orientation to portrait before navigating
+      console.log('[DEBUG] Setting orientation to portrait before navigation');
+      const currentOrientation = await ScreenOrientation.getOrientationAsync();
+      console.log('[DEBUG] Current orientation before changing:', currentOrientation);
+      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+      const newOrientation = await ScreenOrientation.getOrientationAsync();
+      console.log('[INFO] Orientation set to portrait, new orientation:', newOrientation);
+
+      // Navigate to TherapyDetail
+      console.log('[DEBUG] Navigating to TherapyDetail with therapyName:', therapyName);
+      navigation.navigate('TherapyDetails', {
+        therapyName: therapyName,
+      });
+      console.log('[INFO] Successfully navigated to TherapyDetail');
     } catch (error) {
-      console.error('[ERROR] Failed to navigate to TherapyDetail:', error);
+      console.error('[ERROR] Failed to handle end session:', error.message);
+      console.log('[DEBUG] End session error details:', JSON.stringify({ message: error.message, stack: error.stack }, null, 2));
     }
   };
 
@@ -203,13 +250,14 @@ const ARAvatarScreen = ({ route, navigation }) => {
       {Camera.CameraView && permission.status === 'granted' && !cameraError ? (
         <Camera.CameraView
           style={StyleSheet.absoluteFill}
-          facing="back"
+          facing="front"
           onCameraReady={() => {
             console.log('[INFO] Camera is ready');
             setIsCameraReady(true);
           }}
           onMountError={(error) => {
-            console.error('[ERROR] Camera mount error:', error);
+            console.error('[ERROR] Camera mount error:', error.message);
+            console.log('[DEBUG] Camera mount error details:', JSON.stringify({ message: error.message, nativeEvent: error }, null, 2));
             setCameraError(error.message);
           }}
         />
@@ -259,7 +307,6 @@ const ARAvatarScreen = ({ route, navigation }) => {
           style={{ backgroundColor: 'transparent' }}
           onLoadStart={() => {
             console.log('[DEBUG] WebView loading started');
-            setIsModelLoaded(false);
           }}
           onLoadEnd={() => {
             console.log('[INFO] WebView load ended');
@@ -267,7 +314,8 @@ const ARAvatarScreen = ({ route, navigation }) => {
           }}
           onError={(syntheticEvent) => {
             const { nativeEvent } = syntheticEvent;
-            console.error('[ERROR] WebView error:', nativeEvent);
+            console.error('[ERROR] WebView error:', nativeEvent.description);
+            console.log('[DEBUG] WebView error details:', JSON.stringify(nativeEvent, null, 2));
             setWebViewError(`WebView failed: ${nativeEvent.description}`);
           }}
           onMessage={(event) => {
@@ -294,17 +342,17 @@ const ARAvatarScreen = ({ route, navigation }) => {
             navigation.goBack();
           }}
         >
-          <Ionicons name="arrow-back" size={24} color="white" />
+          {/* <Ionicons name="arrow-back" size={24} color="white" /> */}
         </TouchableOpacity>
         <Text style={styles.headerText}>AR Avatar Viewer</Text>
       </LinearGradient>
 
       {/* Instructions (Top Banner) */}
-      <View style={styles.instructionsContainer}>
+      {/* <View style={styles.instructionsContainer}>
         <Text style={styles.instructionsText}>
           Align your camera to view the AR avatar in your environment.
         </Text>
-      </View>
+      </View> */}
 
       {/* Loading Indicator for WebView */}
       {!isModelLoaded && (
@@ -325,7 +373,7 @@ const ARAvatarScreen = ({ route, navigation }) => {
           color="white"
         />
         <Text style={styles.fabText}>
-          {isAnimating ? 'Pause' : 'Play'}
+          {isAnimating ? 'Pause' : 'Start'}
         </Text>
       </TouchableOpacity>
 
