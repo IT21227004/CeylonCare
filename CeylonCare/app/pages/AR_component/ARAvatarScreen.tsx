@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Platform, TouchableOpacity, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Platform,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import * as Camera from 'expo-camera';
 import { useCameraPermissions } from 'expo-camera';
 import WebView from 'react-native-webview';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import * as ScreenOrientation from 'expo-screen-orientation';
 
 const ARAvatarScreen = ({ route, navigation }) => {
   const { arPoseUrl } = route.params || {};
@@ -19,11 +27,39 @@ const ARAvatarScreen = ({ route, navigation }) => {
   const [isModelLoaded, setIsModelLoaded] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
 
+  // Force landscape orientation on component mount
+  useEffect(() => {
+    const lockOrientation = async () => {
+      try {
+        console.log('[DEBUG] Locking screen to landscape');
+        await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+      } catch (error) {
+        console.error('[ERROR] Failed to lock screen orientation:', error);
+      }
+    };
+
+    const unlockOrientation = async () => {
+      try {
+        console.log('[DEBUG] Unlocking screen orientation on unmount');
+        await ScreenOrientation.unlockAsync();
+      } catch (error) {
+        console.error('[ERROR] Failed to unlock screen orientation:', error);
+      }
+    };
+
+    lockOrientation();
+
+    return () => {
+      unlockOrientation();
+    };
+  }, []);
+
   // Validate components on mount
   useEffect(() => {
     console.log('[DEBUG] Component mounted, starting initialization');
     console.log('[DEBUG] Platform:', Platform.OS, 'Version:', Platform.Version);
     console.log('[DEBUG] Expo Camera module:', Camera);
+    console.log('[DEBUG] Navigation prop:', navigation);
 
     // Validate CameraView component
     console.log('[DEBUG] Checking Camera.CameraView:', Camera.CameraView);
@@ -44,7 +80,14 @@ const ARAvatarScreen = ({ route, navigation }) => {
       console.log('[INFO] WebView component validated successfully');
       setIsWebViewValid(true);
     }
-  }, []);
+
+    // Validate navigation prop
+    if (!navigation || typeof navigation.navigate !== 'function') {
+      console.error('[ERROR] Navigation prop is invalid or navigate function is missing');
+    } else {
+      console.log('[INFO] Navigation prop validated successfully');
+    }
+  }, [navigation]);
 
   // Debug and validate arPoseUrl on change
   useEffect(() => {
@@ -104,6 +147,24 @@ const ARAvatarScreen = ({ route, navigation }) => {
     });
   };
 
+  // Navigate to TherapyDetail page
+  const handleEndSession = () => {
+    console.log('[DEBUG] End button pressed');
+    try {
+      if (navigation && navigation.navigate) {
+        console.log('[DEBUG] Navigating to TherapyDetail');
+        navigation.navigate('TherapyDetail', {
+          // Placeholder for any params needed by TherapyDetail
+          // e.g., therapyId: '123'
+        });
+      } else {
+        console.error('[ERROR] Navigation prop is undefined or navigate function is missing');
+      }
+    } catch (error) {
+      console.error('[ERROR] Failed to navigate to TherapyDetail:', error);
+    }
+  };
+
   // Loading state while permissions are being checked
   if (!permission) {
     console.log('[DEBUG] Waiting for permission hook to initialize');
@@ -138,8 +199,94 @@ const ARAvatarScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
+      {/* Camera Feed (Full Screen) */}
+      {Camera.CameraView && permission.status === 'granted' && !cameraError ? (
+        <Camera.CameraView
+          style={StyleSheet.absoluteFill}
+          facing="back"
+          onCameraReady={() => {
+            console.log('[INFO] Camera is ready');
+            setIsCameraReady(true);
+          }}
+          onMountError={(error) => {
+            console.error('[ERROR] Camera mount error:', error);
+            setCameraError(error.message);
+          }}
+        />
+      ) : (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>
+            {cameraError || 'Error: Camera unavailable or permission denied'}
+          </Text>
+        </View>
+      )}
+
+      {/* WebView for AR Avatar (Centered Overlay) */}
+      {isWebViewValid && arPoseUrl && !webViewError ? (
+        <WebView
+          style={StyleSheet.absoluteFill}
+          source={{
+            html: `
+              <html>
+                <head>
+                  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+                  <script src="https://unpkg.com/aframe-extras@7.4.0/dist/aframe-extras.min.js"></script>
+                  <style>
+                    body { margin: 0; background: transparent; }
+                    a-scene { background: transparent; }
+                  </style>
+                </head>
+                <body>
+                  <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
+                    <a-assets>
+                      <a-asset-item id="model" src="${arPoseUrl}"></a-asset-item>
+                    </a-assets>
+                    <a-entity
+                      gltf-model="#model"
+                      animation-mixer="${isAnimating ? 'clip: *; loop: repeat;' : ''}"
+                      scale="2 2 2"
+                      position="0 0 -3"
+                      rotation="0 0 0"
+                    ></a-entity>
+                    <a-camera position="0 1.6 0" look-controls="enabled: false"></a-camera>
+                  </a-scene>
+                </body>
+              </html>
+            `,
+          }}
+          allowsInlineMediaPlayback={true}
+          mediaPlaybackRequiresUserAction={false}
+          style={{ backgroundColor: 'transparent' }}
+          onLoadStart={() => {
+            console.log('[DEBUG] WebView loading started');
+            setIsModelLoaded(false);
+          }}
+          onLoadEnd={() => {
+            console.log('[INFO] WebView load ended');
+            setIsModelLoaded(true);
+          }}
+          onError={(syntheticEvent) => {
+            const { nativeEvent } = syntheticEvent;
+            console.error('[ERROR] WebView error:', nativeEvent);
+            setWebViewError(`WebView failed: ${nativeEvent.description}`);
+          }}
+          onMessage={(event) => {
+            console.log('[DEBUG] WebView message:', event.nativeEvent.data);
+          }}
+        />
+      ) : (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>
+            {webViewError || 'Error: WebView unavailable or invalid arPoseUrl'}
+          </Text>
+        </View>
+      )}
+
       {/* Header */}
-      <LinearGradient colors={["#33E4DB", "#00BBD3"]} style={styles.header}>
+      <LinearGradient
+        colors={['rgba(51, 228, 219, 0.8)', 'rgba(0, 187, 211, 0.8)']}
+        style={styles.header}
+      >
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => {
@@ -152,122 +299,48 @@ const ARAvatarScreen = ({ route, navigation }) => {
         <Text style={styles.headerText}>AR Avatar Viewer</Text>
       </LinearGradient>
 
-      {/* Instructions */}
+      {/* Instructions (Top Banner) */}
       <View style={styles.instructionsContainer}>
         <Text style={styles.instructionsText}>
           Align your camera to view the AR avatar in your environment.
         </Text>
       </View>
 
-      {/* Camera and WebView Overlay */}
-      <View style={styles.arContainer}>
-        {Camera.CameraView && permission.status === 'granted' && !cameraError ? (
-          <Camera.CameraView
-            style={StyleSheet.absoluteFill}
-            facing="front"
-            onCameraReady={() => {
-              console.log('[INFO] Camera is ready');
-              setIsCameraReady(true);
-            }}
-            onMountError={(error) => {
-              console.error('[ERROR] Camera mount error:', error);
-              setCameraError(error.message);
-            }}
-          />
-        ) : (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>
-              {cameraError || 'Error: Camera unavailable or permission denied'}
-            </Text>
-          </View>
-        )}
+      {/* Loading Indicator for WebView */}
+      {!isModelLoaded && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#00BBD3" />
+          <Text style={styles.loadingText}>Loading AR Avatar...</Text>
+        </View>
+      )}
 
-        {/* WebView for AR Avatar */}
-        {isWebViewValid && arPoseUrl && !webViewError ? (
-          <WebView
-            style={StyleSheet.absoluteFill}
-            source={{
-              html: `
-                <html>
-                  <head>
-                    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-                    <script src="https://unpkg.com/aframe-extras@7.0.0/dist/aframe-extras.min.js"></script>
-                    <style>
-                      body { margin: 0; background: transparent; }
-                      a-scene { background: transparent; }
-                    </style>
-                  </head>
-                  <body>
-                    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
-                      <a-assets>
-                        <a-asset-item id="model" src="${arPoseUrl}"></a-asset-item>
-                      </a-assets>
-                      <a-entity
-                        gltf-model="#model"
-                        animation-mixer="${isAnimating ? 'clip: *; loop: repeat;' : ''}"
-                        scale="1.5 1.5 1.5"
-                        position="0 0 -2"
-                        rotation="0 0 0"
-                      ></a-entity>
-                      <a-camera position="0 1.6 0" look-controls="enabled: false"></a-camera>
-                    </a-scene>
-                  </body>
-                </html>
-              `,
-            }}
-            allowsInlineMediaPlayback={true}
-            mediaPlaybackRequiresUserAction={false}
-            style={{ backgroundColor: 'transparent' }}
-            onLoadStart={() => {
-              console.log('[DEBUG] WebView loading started');
-              setIsModelLoaded(false);
-            }}
-            onLoadEnd={() => {
-              console.log('[INFO] WebView load ended');
-              setIsModelLoaded(true);
-            }}
-            onError={(syntheticEvent) => {
-              const { nativeEvent } = syntheticEvent;
-              console.error('[ERROR] WebView error:', nativeEvent);
-              setWebViewError(`WebView failed: ${nativeEvent.description}`);
-            }}
-            onMessage={(event) => {
-              console.log('[DEBUG] WebView message:', event.nativeEvent.data);
-            }}
-          />
-        ) : (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>
-              {webViewError || 'Error: WebView unavailable or invalid arPoseUrl'}
-            </Text>
-          </View>
-        )}
+      {/* Floating Action Button for Animation Control (Bottom-Right) */}
+      <TouchableOpacity
+        style={styles.fabPlay}
+        onPress={toggleAnimation}
+      >
+        <Ionicons
+          name={isAnimating ? 'pause' : 'play'}
+          size={24}
+          color="white"
+        />
+        <Text style={styles.fabText}>
+          {isAnimating ? 'Pause' : 'Play'}
+        </Text>
+      </TouchableOpacity>
 
-        {/* Loading Indicator for WebView */}
-        {!isModelLoaded && (
-          <View style={styles.loadingOverlay}>
-            <ActivityIndicator size="large" color="#00BBD3" />
-            <Text style={styles.loadingText}>Loading AR Avatar...</Text>
-          </View>
-        )}
-      </View>
-
-      {/* Control Buttons */}
-      <View style={styles.controlsContainer}>
-        <TouchableOpacity
-          style={styles.controlButton}
-          onPress={toggleAnimation}
-        >
-          <Ionicons
-            name={isAnimating ? "pause" : "play"}
-            size={24}
-            color="white"
-          />
-          <Text style={styles.controlButtonText}>
-            {isAnimating ? 'Pause' : 'Start'}
-          </Text>
-        </TouchableOpacity>
-      </View>
+      {/* Floating Action Button for End Session (Bottom-Left) */}
+      <TouchableOpacity
+        style={styles.fabEnd}
+        onPress={handleEndSession}
+      >
+        <Ionicons
+          name="stop-circle-outline"
+          size={24}
+          color="white"
+        />
+        <Text style={styles.fabText}>End</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -276,37 +349,40 @@ const ARAvatarScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#000', // Fallback background if camera fails
   },
   header: {
-    height: 80,
+    height: 60,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 20,
+    paddingTop: 10,
   },
   backButton: {
     position: 'absolute',
     left: 15,
-    top: 40,
+    top: 20,
   },
   headerText: {
-    fontSize: 24,
+    fontSize: 20,
     color: 'white',
     fontWeight: '600',
   },
   instructionsContainer: {
-    padding: 10,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    position: 'absolute',
+    top: 70,
+    left: 20,
+    right: 20,
+    padding: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    borderRadius: 10,
+    alignItems: 'center',
+    zIndex: 10,
   },
   instructionsText: {
     color: 'white',
     textAlign: 'center',
-    fontSize: 16,
-  },
-  arContainer: {
-    flex: 1,
-    position: 'relative',
+    fontSize: 14,
   },
   errorContainer: {
     flex: 1,
@@ -339,26 +415,50 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
   },
-  controlsContainer: {
+  fabPlay: {
     position: 'absolute',
     bottom: 20,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-  },
-  controlButton: {
+    right: 20,
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#00BBD3',
+    padding: 15,
+    borderRadius: 30,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+  },
+  fabEnd: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FF4D4F', // Red color to indicate "End"
+    padding: 15,
+    borderRadius: 30,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+  },
+  fabText: {
+    color: 'white',
+    marginLeft: 10,
+    fontSize: 16,
+  },
+  retryButton: {
+    marginTop: 20,
     backgroundColor: '#00BBD3',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 25,
   },
-  controlButtonText: {
+  retryButtonText: {
     color: 'white',
-    marginLeft: 10,
     fontSize: 16,
   },
 });
