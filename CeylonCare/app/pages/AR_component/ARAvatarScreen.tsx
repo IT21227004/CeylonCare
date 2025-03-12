@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -26,195 +26,136 @@ const ARAvatarScreen = ({ route, navigation }) => {
   const [webViewError, setWebViewError] = useState(null);
   const [isModelLoaded, setIsModelLoaded] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isWebViewBridgeReady, setIsWebViewBridgeReady] = useState(false); // Track bridge readiness
+  const webViewRef = useRef(null);
 
-  // Force landscape orientation on component mount
+  // Lock to landscape on mount, unlock on unmount
   useEffect(() => {
+    console.log('[DEBUG] Component mounted');
     const lockOrientation = async () => {
       try {
         console.log('[DEBUG] Locking screen to landscape');
         const currentOrientation = await ScreenOrientation.getOrientationAsync();
-        console.log('[DEBUG] Current orientation before locking:', currentOrientation);
+        console.log('[DEBUG] Current orientation:', currentOrientation);
         await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
-        const newOrientation = await ScreenOrientation.getOrientationAsync();
-        console.log('[INFO] Screen locked to landscape, new orientation:', newOrientation);
+        console.log('[INFO] Screen locked to landscape');
       } catch (error) {
-        console.error('[ERROR] Failed to lock screen orientation:', error.message);
-        console.log('[DEBUG] Orientation lock error details:', JSON.stringify({ message: error.message, stack: error.stack }, null, 2));
+        console.error('[ERROR] Failed to lock orientation:', error.message);
       }
     };
 
     const unlockOrientation = async () => {
       try {
-        console.log('[DEBUG] Unlocking screen orientation on unmount');
-        const currentOrientation = await ScreenOrientation.getOrientationAsync();
-        console.log('[DEBUG] Current orientation before unlocking:', currentOrientation);
+        console.log('[DEBUG] Unlocking screen orientation');
         await ScreenOrientation.unlockAsync();
-        const newOrientation = await ScreenOrientation.getOrientationAsync();
-        console.log('[INFO] Screen orientation unlocked, new orientation:', newOrientation);
+        console.log('[INFO] Screen orientation unlocked');
       } catch (error) {
-        console.error('[ERROR] Failed to unlock screen orientation:', error.message);
-        console.log('[DEBUG] Orientation unlock error details:', JSON.stringify({ message: error.message, stack: error.stack }, null, 2));
+        console.error('[ERROR] Failed to unlock orientation:', error.message);
       }
     };
 
     lockOrientation();
-
     return () => {
+      console.log('[DEBUG] Component unmounting');
       unlockOrientation();
     };
   }, []);
 
-  // Validate components on mount
+  // Validate components
   useEffect(() => {
-    console.log('[DEBUG] Component mounted, starting initialization');
-    console.log('[DEBUG] Platform:', Platform.OS, 'Version:', Platform.Version);
-    console.log('[DEBUG] Expo Camera module:', Camera);
-    console.log('[DEBUG] Navigation prop:', navigation);
-
-    // Validate CameraView component
-    console.log('[DEBUG] Checking Camera.CameraView:', Camera.CameraView);
-    if (!Camera.CameraView || typeof Camera.CameraView !== 'function') {
-      const errorMsg = '[ERROR] CameraView component is invalid or not a function';
-      console.error(errorMsg, Camera);
-      console.log('[DEBUG] Camera validation error details:', JSON.stringify(Camera, null, 2));
-      setCameraError(errorMsg);
-    } else {
-      console.log('[INFO] CameraView component validated successfully');
+    console.log('[DEBUG] Validating components');
+    if (!Camera.CameraView) {
+      console.error('[ERROR] CameraView unavailable');
+      setCameraError('Camera component unavailable');
     }
-
-    // Validate WebView component
-    console.log('[DEBUG] Checking WebView module:', WebView);
-    if (!WebView || typeof WebView !== 'object') {
-      console.error('[ERROR] WebView component is invalid:', WebView);
-      console.log('[DEBUG] WebView validation error details:', JSON.stringify(WebView, null, 2));
+    if (!WebView) {
+      console.error('[ERROR] WebView unavailable');
       setIsWebViewValid(false);
     } else {
-      console.log('[INFO] WebView component validated successfully');
+      console.log('[INFO] WebView component validated');
       setIsWebViewValid(true);
     }
-
-    // Validate navigation prop
-    if (!navigation || typeof navigation.navigate !== 'function') {
-      console.error('[ERROR] Navigation prop is invalid or navigate function is missing');
-      console.log('[DEBUG] Navigation validation error details:', JSON.stringify(navigation, null, 2));
-    } else {
-      console.log('[INFO] Navigation prop validated successfully');
+    if (!navigation?.navigate) {
+      console.error('[ERROR] Navigation prop invalid');
     }
+  }, [navigation]);
 
-    // Validate therapyName in route params
-    console.log('[DEBUG] Checking therapyName in route params:', therapyName);
-    if (!therapyName) {
-      console.warn('[WARN] therapyName is undefined or missing in route params');
-      console.log('[DEBUG] Missing therapyName details:', JSON.stringify(route.params, null, 2));
-    } else {
-      console.log('[INFO] therapyName is present:', therapyName);
-    }
-  }, [navigation, therapyName]);
-
-  // Debug and validate arPoseUrl on change
+  // Validate arPoseUrl
   useEffect(() => {
-    console.log('[DEBUG] arPoseUrl received:', arPoseUrl);
+    console.log('[DEBUG] Validating arPoseUrl:', arPoseUrl);
     if (!arPoseUrl) {
-      console.warn('[WARN] arPoseUrl is undefined or empty');
-      console.log('[DEBUG] Missing arPoseUrl details:', JSON.stringify(route.params, null, 2));
+      console.warn('[WARN] arPoseUrl missing');
       setWebViewError('arPoseUrl is missing');
-    } else if (typeof arPoseUrl !== 'string') {
-      console.error('[ERROR] arPoseUrl is not a string:', arPoseUrl);
-      console.log('[DEBUG] Invalid arPoseUrl type details:', JSON.stringify({ arPoseUrl, type: typeof arPoseUrl }, null, 2));
-      setWebViewError('arPoseUrl is not a string');
     } else {
-      console.log('[INFO] arPoseUrl is a valid string');
       try {
         new URL(arPoseUrl);
-        console.log('[INFO] arPoseUrl is a valid URL');
+        console.log('[INFO] arPoseUrl valid');
       } catch (error) {
-        console.error('[ERROR] arPoseUrl is not a valid URL:', error.message);
-        console.log('[DEBUG] URL validation error details:', JSON.stringify({ message: error.message, stack: error.stack }, null, 2));
-        setWebViewError('Invalid arPoseUrl format');
+        console.error('[ERROR] Invalid arPoseUrl:', error.message);
+        setWebViewError('Invalid arPoseUrl');
       }
     }
   }, [arPoseUrl]);
 
   // Handle camera permission
   useEffect(() => {
-    console.log('[DEBUG] Permission state:', permission);
     if (!permission) {
-      console.log('[DEBUG] Permission hook not yet initialized');
+      console.log('[DEBUG] Permission not initialized');
       return;
     }
-
-    if (permission.status === 'granted') {
-      console.log('[INFO] Camera permission already granted');
-    } else if (permission.status === 'denied' || permission.status === 'undetermined') {
-      console.log('[DEBUG] Starting camera permission request');
-      requestPermission()
-        .then((response) => {
-          console.log('[DEBUG] Permission request response:', JSON.stringify(response, null, 2));
-          if (response.status === 'granted') {
-            console.log('[INFO] Camera permission granted');
-          } else {
-            console.warn('[WARN] Camera permission denied or undetermined:', response.status);
-            console.log('[DEBUG] Permission denied details:', JSON.stringify(response, null, 2));
-            setCameraError('Camera permission denied');
-          }
-        })
-        .catch((error) => {
-          console.error('[ERROR] Failed to request camera permission:', error.message);
-          console.log('[DEBUG] Permission request error details:', JSON.stringify({ message: error.message, stack: error.stack }, null, 2));
-          setCameraError('Permission request failed');
-        });
+    if (permission.status !== 'granted') {
+      console.log('[DEBUG] Requesting camera permission');
+      requestPermission();
+    } else {
+      console.log('[INFO] Camera permission granted');
     }
   }, [permission, requestPermission]);
 
-  // Toggle animation
+  // Toggle animation with fallback
   const toggleAnimation = () => {
+    if (!isModelLoaded) {
+      console.log('[DEBUG] Animation toggle ignored: model not loaded');
+      return;
+    }
     setIsAnimating((prev) => {
-      console.log('[DEBUG] Animation toggled:', !prev);
-      return !prev;
+      const newState = !prev;
+      console.log('[DEBUG] Toggling animation to:', newState);
+      if (isWebViewBridgeReady && webViewRef.current) {
+        const message = newState ? 'start' : 'stop';
+        console.log('[DEBUG] Attempting to send message to WebView:', message);
+        try {
+          webViewRef.current.postMessage(message);
+          console.log('[INFO] Message sent successfully');
+        } catch (error) {
+          console.error('[ERROR] Failed to send message:', error.message);
+        }
+      } else {
+        console.warn('[WARN] WebView bridge not ready or ref missing, animation state updated locally');
+      }
+      return newState;
     });
   };
 
-  // Navigate to TherapyDetail page and set orientation to portrait
+  // End session
   const handleEndSession = async () => {
-    console.log('[DEBUG] End button pressed');
+    console.log('[DEBUG] Ending session');
     try {
-      // Check for therapyName
-      if (!therapyName) {
-        console.error('[ERROR] therapyName is missing, cannot navigate to TherapyDetail');
-        console.log('[DEBUG] Missing therapyName details:', JSON.stringify(route.params, null, 2));
-        return;
+      if (webViewRef.current && isWebViewBridgeReady) {
+        console.log('[DEBUG] Sending stop message before navigation');
+        webViewRef.current.postMessage('stop');
       }
-
-      // Validate navigation prop
-      if (!navigation || typeof navigation.navigate !== 'function') {
-        console.error('[ERROR] Navigation prop is undefined or navigate function is missing');
-        console.log('[DEBUG] Navigation validation error details:', JSON.stringify(navigation, null, 2));
-        return;
-      }
-
-      // Set orientation to portrait before navigating
-      console.log('[DEBUG] Setting orientation to portrait before navigation');
-      const currentOrientation = await ScreenOrientation.getOrientationAsync();
-      console.log('[DEBUG] Current orientation before changing:', currentOrientation);
+      console.log('[DEBUG] Locking to portrait');
       await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
-      const newOrientation = await ScreenOrientation.getOrientationAsync();
-      console.log('[INFO] Orientation set to portrait, new orientation:', newOrientation);
-
-      // Navigate to TherapyDetail
-      console.log('[DEBUG] Navigating to TherapyDetail with therapyName:', therapyName);
-      navigation.navigate('TherapyDetails', {
-        therapyName: therapyName,
-      });
-      console.log('[INFO] Successfully navigated to TherapyDetail');
+      console.log('[INFO] Navigating to TherapyDetails');
+      navigation.navigate('TherapyDetails', { therapyName });
     } catch (error) {
-      console.error('[ERROR] Failed to handle end session:', error.message);
-      console.log('[DEBUG] End session error details:', JSON.stringify({ message: error.message, stack: error.stack }, null, 2));
+      console.error('[ERROR] Failed to end session:', error.message);
     }
   };
 
-  // Loading state while permissions are being checked
+  // Permission loading state
   if (!permission) {
-    console.log('[DEBUG] Waiting for permission hook to initialize');
+    console.log('[DEBUG] Waiting for permission');
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#00BBD3" />
@@ -223,12 +164,12 @@ const ARAvatarScreen = ({ route, navigation }) => {
     );
   }
 
-  // Permission denied case
+  // Permission denied state
   if (permission.status !== 'granted') {
-    console.log('[DEBUG] Rendering permission denied message');
+    console.log('[DEBUG] Permission denied');
     return (
       <View style={styles.loadingContainer}>
-        <Text style={styles.errorText}>No access to camera. Please grant permission.</Text>
+        <Text style={styles.errorText}>Camera permission required</Text>
         <TouchableOpacity style={styles.retryButton} onPress={requestPermission}>
           <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
@@ -236,97 +177,117 @@ const ARAvatarScreen = ({ route, navigation }) => {
     );
   }
 
-  // Main render
-  console.log('[DEBUG] Rendering main view');
-  console.log('[DEBUG] isCameraReady:', isCameraReady);
-  console.log('[DEBUG] isWebViewValid:', isWebViewValid);
-  console.log('[DEBUG] cameraError:', cameraError);
-  console.log('[DEBUG] webViewError:', webViewError);
-  console.log('[DEBUG] isAnimating:', isAnimating);
+  // WebView HTML with dynamic animation control
+  const getWebViewHtml = () => `
+    <html>
+      <head>
+        <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+        <script src="https://unpkg.com/aframe-extras@7.4.0/dist/aframe-extras.min.js"></script>
+        <style>
+          body { margin: 0; background: transparent; }
+          a-scene { background: transparent; }
+        </style>
+      </head>
+      <body>
+        <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
+          <a-assets>
+            <a-asset-item id="model" src="${arPoseUrl}"></a-asset-item>
+          </a-assets>
+          <a-entity
+            gltf-model="#model"
+            scale="2 2 2"
+            position="0 0 -3"
+            rotation="0 0 0"
+          ></a-entity>
+          <a-camera position="0 1.6 0" look-controls="enabled: false"></a-camera>
+        </a-scene>
+        <script>
+          console.log('WebView script executing');
+          document.addEventListener('DOMContentLoaded', () => {
+            console.log('WebView DOM loaded');
+            window.ReactNativeWebView.postMessage('bridge-ready');
+            const entity = document.querySelector('a-entity');
+            entity.addEventListener('model-loaded', () => {
+              console.log('Model loaded');
+              window.ReactNativeWebView.postMessage('model-loaded');
+              if (${isAnimating}) {
+                entity.setAttribute('animation-mixer', 'clip: *; loop: repeat;');
+              }
+            });
+            entity.addEventListener('model-error', (event) => {
+              console.error('Model error:', event.detail.src);
+              window.ReactNativeWebView.postMessage('model-error: ' + event.detail.src);
+            });
+          });
+          window.addEventListener('message', (event) => {
+            const entity = document.querySelector('a-entity');
+            console.log('Received message:', event.data);
+            if (event.data === 'start') {
+              entity.setAttribute('animation-mixer', 'clip: *; loop: repeat;');
+            } else if (event.data === 'stop') {
+              entity.setAttribute('animation-mixer', '');
+            }
+          });
+        </script>
+      </body>
+    </html>
+  `;
 
   return (
     <View style={styles.container}>
-      {/* Camera Feed (Full Screen) */}
-      {Camera.CameraView && permission.status === 'granted' && !cameraError ? (
+      {/* Camera Feed */}
+      {Camera.CameraView && !cameraError ? (
         <Camera.CameraView
           style={StyleSheet.absoluteFill}
           facing="front"
           onCameraReady={() => {
-            console.log('[INFO] Camera is ready');
+            console.log('[INFO] Camera ready');
             setIsCameraReady(true);
           }}
           onMountError={(error) => {
-            console.error('[ERROR] Camera mount error:', error.message);
-            console.log('[DEBUG] Camera mount error details:', JSON.stringify({ message: error.message, nativeEvent: error }, null, 2));
+            console.error('[ERROR] Camera error:', error.message);
             setCameraError(error.message);
           }}
         />
       ) : (
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>
-            {cameraError || 'Error: Camera unavailable or permission denied'}
-          </Text>
+          <Text style={styles.errorText}>{cameraError || 'Camera unavailable'}</Text>
         </View>
       )}
 
-      {/* WebView for AR Avatar (Centered Overlay) */}
+      {/* WebView for AR Avatar */}
       {isWebViewValid && arPoseUrl && !webViewError ? (
         <WebView
+          ref={webViewRef}
           style={StyleSheet.absoluteFill}
-          source={{
-            html: `
-              <html>
-                <head>
-                  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-                  <script src="https://unpkg.com/aframe-extras@7.4.0/dist/aframe-extras.min.js"></script>
-                  <style>
-                    body { margin: 0; background: transparent; }
-                    a-scene { background: transparent; }
-                  </style>
-                </head>
-                <body>
-                  <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
-                    <a-assets>
-                      <a-asset-item id="model" src="${arPoseUrl}"></a-asset-item>
-                    </a-assets>
-                    <a-entity
-                      gltf-model="#model"
-                      animation-mixer="${isAnimating ? 'clip: *; loop: repeat;' : ''}"
-                      scale="2 2 2"
-                      position="0 0 -3"
-                      rotation="0 0 0"
-                    ></a-entity>
-                    <a-camera position="0 1.6 0" look-controls="enabled: false"></a-camera>
-                  </a-scene>
-                </body>
-              </html>
-            `,
-          }}
+          source={{ html: getWebViewHtml() }}
           allowsInlineMediaPlayback={true}
           mediaPlaybackRequiresUserAction={false}
           style={{ backgroundColor: 'transparent' }}
-          onLoadStart={() => {
-            console.log('[DEBUG] WebView loading started');
-          }}
-          onLoadEnd={() => {
-            console.log('[INFO] WebView load ended');
-            setIsModelLoaded(true);
-          }}
-          onError={(syntheticEvent) => {
-            const { nativeEvent } = syntheticEvent;
-            console.error('[ERROR] WebView error:', nativeEvent.description);
-            console.log('[DEBUG] WebView error details:', JSON.stringify(nativeEvent, null, 2));
-            setWebViewError(`WebView failed: ${nativeEvent.description}`);
+          onLoadStart={() => console.log('[DEBUG] WebView loading started')}
+          onLoadEnd={() => console.log('[INFO] WebView HTML loaded')}
+          onError={(e) => {
+            console.error('[ERROR] WebView error:', e.nativeEvent.description);
+            setWebViewError(e.nativeEvent.description);
           }}
           onMessage={(event) => {
-            console.log('[DEBUG] WebView message:', event.nativeEvent.data);
+            const data = event.nativeEvent.data;
+            console.log('[DEBUG] WebView message received:', data);
+            if (data === 'bridge-ready') {
+              console.log('[INFO] WebView bridge ready');
+              setIsWebViewBridgeReady(true);
+            } else if (data === 'model-loaded') {
+              console.log('[INFO] Model fully loaded');
+              setIsModelLoaded(true);
+            } else if (data.startsWith('model-error:')) {
+              console.error('[ERROR] Model load failed:', data);
+              setWebViewError('Failed to load model');
+            }
           }}
         />
       ) : (
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>
-            {webViewError || 'Error: WebView unavailable or invalid arPoseUrl'}
-          </Text>
+          <Text style={styles.errorText}>{webViewError || 'WebView error'}</Text>
         </View>
       )}
 
@@ -347,14 +308,7 @@ const ARAvatarScreen = ({ route, navigation }) => {
         <Text style={styles.headerText}>AR Avatar Viewer</Text>
       </LinearGradient>
 
-      {/* Instructions (Top Banner) */}
-      {/* <View style={styles.instructionsContainer}>
-        <Text style={styles.instructionsText}>
-          Align your camera to view the AR avatar in your environment.
-        </Text>
-      </View> */}
-
-      {/* Loading Indicator for WebView */}
+      {/* Loading Overlay */}
       {!isModelLoaded && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#00BBD3" />
@@ -362,42 +316,33 @@ const ARAvatarScreen = ({ route, navigation }) => {
         </View>
       )}
 
-      {/* Floating Action Button for Animation Control (Bottom-Right) */}
+      {/* Start/Pause Button */}
       <TouchableOpacity
-        style={styles.fabPlay}
+        style={[styles.fabPlay, !isModelLoaded && styles.fabDisabled]}
         onPress={toggleAnimation}
+        disabled={!isModelLoaded}
       >
         <Ionicons
           name={isAnimating ? 'pause' : 'play'}
           size={24}
           color="white"
         />
-        <Text style={styles.fabText}>
-          {isAnimating ? 'Pause' : 'Start'}
-        </Text>
+        <Text style={styles.fabText}>{isAnimating ? 'Pause' : 'Start'}</Text>
       </TouchableOpacity>
 
-      {/* Floating Action Button for End Session (Bottom-Left) */}
-      <TouchableOpacity
-        style={styles.fabEnd}
-        onPress={handleEndSession}
-      >
-        <Ionicons
-          name="stop-circle-outline"
-          size={24}
-          color="white"
-        />
+      {/* End Button */}
+      <TouchableOpacity style={styles.fabEnd} onPress={handleEndSession}>
+        <Ionicons name="stop-circle-outline" size={24} color="white" />
         <Text style={styles.fabText}>End</Text>
       </TouchableOpacity>
     </View>
   );
 };
 
-// Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000', // Fallback background if camera fails
+    backgroundColor: '#000',
   },
   header: {
     height: 60,
@@ -415,22 +360,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: 'white',
     fontWeight: '600',
-  },
-  instructionsContainer: {
-    position: 'absolute',
-    top: 70,
-    left: 20,
-    right: 20,
-    padding: 8,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    borderRadius: 10,
-    alignItems: 'center',
-    zIndex: 10,
-  },
-  instructionsText: {
-    color: 'white',
-    textAlign: 'center',
-    fontSize: 14,
   },
   errorContainer: {
     flex: 1,
@@ -484,7 +413,7 @@ const styles = StyleSheet.create({
     left: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FF4D4F', // Red color to indicate "End"
+    backgroundColor: '#FF4D4F',
     padding: 15,
     borderRadius: 30,
     elevation: 5,
@@ -497,6 +426,9 @@ const styles = StyleSheet.create({
     color: 'white',
     marginLeft: 10,
     fontSize: 16,
+  },
+  fabDisabled: {
+    opacity: 0.5,
   },
   retryButton: {
     marginTop: 20,
