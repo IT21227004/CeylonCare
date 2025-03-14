@@ -1,5 +1,6 @@
+# Backend/chatbot_model/flask_app.py
 import os
-os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'  # Suppress oneDNN warnings
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -9,12 +10,10 @@ import tensorflow as tf
 import pickle
 import numpy as np
 import pandas as pd
-import firebase_admin
-from firebase_admin import credentials, firestore
 import logging
-from sklearn.preprocessing import LabelEncoder
+import re
 
-# Set up detailed logging
+# Set up detailed logging for debugging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
@@ -22,25 +21,19 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 CORS(app)
 
-# Load Firebase credentials
+# Load model, tokenizer, label encoder, and dataset at startup
 try:
-    cred = credentials.Certificate("../firebase-service-account.json")
-    firebase_admin.initialize_app(cred)
-    db = firestore.client()
-    logger.debug("Firebase initialized successfully.")
-except Exception as e:
-    logger.error(f"Firebase initialization failed: {e}")
-
-# Load model, tokenizer, label encoder, and dataset
-try:
-    model = load_model('best_chatbot_model.keras', compile=False)  # Updated to .keras
+    model = load_model('best_chatbot_model.keras', compile=False)  # Updated to .keras format
     with open('tokenizer.pkl', 'rb') as handle:
         tokenizer = pickle.load(handle)
     with open('label_encoder.pkl', 'rb') as f:
         label_encoder = pickle.load(f)
-    data_df = pd.read_csv('dataset_chatbot.csv')
+    data_df = pd.read_csv('dataset_chatbot_updated.csv')
     logger.debug("Model, tokenizer, label encoder, and dataset loaded successfully.")
+    logger.debug(f"Dataset shape: {data_df.shape}, Columns: {data_df.columns.tolist()}")
     logger.debug(f"Unique intents in dataset: {data_df['Intent'].unique()}")
+    logger.debug(f"Unique languages in dataset: {data_df['Language'].unique()}")
+    logger.debug(f"Dataset sample:\n{data_df.head().to_string()}")
 except Exception as e:
     logger.error(f"Failed to load model components or dataset: {e}")
     raise
@@ -52,22 +45,31 @@ MAX_SEQ_LENGTH = 50
 def predict_with_model(padded_seq):
     return model(padded_seq)
 
-def get_user_health_condition(user_id):
+def detect_language(query):
+    """
+    Detect if the query is in Sinhala or English based on character range.
+    Sinhala Unicode range: U+0D80 to U+0DFF
+    """
     try:
-        user_ref = db.collection('healthData').document(user_id).get()
-        if user_ref.exists:
-            health_condition = user_ref.to_dict().get('healthCondition', 'general')
-            logger.debug(f"Retrieved health condition for user {user_id}: {health_condition}")
-            return health_condition
-        logger.warning(f"No health data found for user {user_id}")
-        return 'general'
+        sinhala_pattern = re.compile(r'[\u0D80-\u0DFF]')
+        if sinhala_pattern.search(query):
+            logger.debug(f"Detected Sinhala characters in query: {query}")
+            return 'Sinhala'
+        logger.debug(f"No Sinhala characters detected, assuming English for query: {query}")
+        return 'English'
     except Exception as e:
-        logger.error(f"Error fetching health condition for user {user_id}: {e}")
-        return 'general'
+        logger.error(f"Error detecting language for query '{query}': {e}")
+        return 'English'  # Fallback
 
-def chatbot_predict(query, user_id=None):
+def chatbot_predict(query, health_condition):
     try:
-        logger.debug(f"Processing query: {query}")
+        logger.debug(f"Processing query: {query} with health condition: {health_condition}")
+
+        # Detect the query language
+        query_language = detect_language(query)
+        logger.debug(f"Detected query language: {query_language}")
+
+        # Tokenize and predict intent
         seq = tokenizer.texts_to_sequences([query])
         logger.debug(f"Tokenized sequence: {seq}")
         padded_seq = pad_sequences(seq, maxlen=MAX_SEQ_LENGTH)
@@ -75,31 +77,42 @@ def chatbot_predict(query, user_id=None):
 
         prediction = np.argmax(predict_with_model(padded_seq), axis=1)
         logger.debug(f"Raw prediction output: {prediction}")
-        predicted_intent_base = label_encoder.inverse_transform(prediction)[0]
-        logger.debug(f"Base predicted intent: {predicted_intent_base}")
+        predicted_intent = label_encoder.inverse_transform(prediction)[0]
+        logger.debug(f"Predicted intent: {predicted_intent}")
 
-        # Get user health condition if available
-        health_condition = 'general'
-        if user_id:
-            health_condition = get_user_health_condition(user_id).lower().replace(' ', '_')
+        # Validate health condition in intent
+        if health_condition != 'general' and health_condition.lower().replace(' ', '_') not in predicted_intent:
+            logger.warning(f"Health condition '{health_condition}' not in predicted intent '{predicted_intent}', reconstructing intent")
+            predicted_intent = f"{predicted_intent.split('_for_')[0]}_for_{health_condition.lower().replace(' ', '_')}"
+            logger.debug(f"Reconstructed intent: {predicted_intent}")
 
-        # Adjust intent based on health condition
-        predicted_intent = predicted_intent_base
-        if health_condition != 'general':
-            predicted_intent = f"{predicted_intent_base.lower().replace(' ', '_')}_for_{health_condition}"
+        # Filter responses based on intent and language
+        filtered_df = data_df[(data_df['Intent'] == predicted_intent) & (data_df['Language'] == query_language)]
+        logger.debug(f"Filtered dataset for intent '{predicted_intent}' and language '{query_language}': {filtered_df.shape[0]} rows")
 
-        logger.debug(f"Adjusted predicted intent: {predicted_intent}")
+        # If no response in the correct language, log an error and return a message
+        if filtered_df.empty:
+            logger.error(f"No {query_language} response found for intent '{predicted_intent}'")
+            return f"Sorry, I don't have a {query_language} response for this query. Please try another language."
 
-        # Filter response based on intent
-        response = data_df[data_df['Intent'] == predicted_intent]['Response'].values
+        # Validate response health condition
+        for _, row in filtered_df.iterrows():
+            response_health_condition = row.get('Health Condition', row.get('Condition', 'general'))
+            if health_condition.lower().replace(' ', '_') not in predicted_intent.lower():
+                logger.warning(f"Response health condition '{response_health_condition}' does not match user health condition '{health_condition}' for intent '{predicted_intent}'")
+
         logger.debug(f"Matching intents in dataset: {data_df['Intent'].unique()}")
-        logger.debug(f"Found responses for intent '{predicted_intent}': {response}")
-        bot_response = response[0] if len(response) > 0 else "Sorry, I don't understand your question."
+        logger.debug(f"Filtered responses (language: {query_language}): {filtered_df['Response'].values}")
+        bot_response = filtered_df['Response'].values[0] if len(filtered_df) > 0 else "Sorry, I don't understand your question."
         logger.debug(f"Final bot response: {bot_response}")
+        response_language = detect_language(bot_response)
+        logger.debug(f"Response language (inferred): {response_language}")
+        if response_language != query_language:
+            logger.error(f"Language mismatch: Query language '{query_language}', Response language '{response_language}'")
 
         return bot_response
     except Exception as e:
-        logger.error(f"Prediction failed for query '{query}': {e}")
+        logger.error(f"Prediction failed for query '{query}' with condition '{health_condition}': {e}")
         return "Sorry, an error occurred while processing your request."
 
 @app.route('/chat', methods=['POST'])
@@ -109,11 +122,15 @@ def chat():
         logger.debug(f"Received request data: {data}")
         user_input = data.get('message')
         user_id = data.get('userId')
+        health_condition = data.get('healthCondition', 'general')
         if not user_input:
             logger.warning("No message provided in request")
             return jsonify({'error': 'No message provided'}), 400
+        if not user_id:
+            logger.warning("No userId provided in request")
+            return jsonify({'error': 'No userId provided'}), 400
 
-        bot_response = chatbot_predict(user_input, user_id)
+        bot_response = chatbot_predict(user_input, health_condition)
         logger.debug(f"Returning response: {bot_response}")
         return jsonify({'response': bot_response})
     except Exception as e:

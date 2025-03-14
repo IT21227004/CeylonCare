@@ -9,7 +9,7 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 import pickle
 
 # Load Data
-data_path = 'dataset_chatbot.csv'
+data_path = 'dataset_chatbot_updated.csv'
 data = pd.read_csv(data_path)
 
 # Inspect Data
@@ -99,7 +99,7 @@ def chatbot_predict(query):
     prediction = np.argmax(model.predict(padded_seq), axis=1)
     predicted_intent = label_encoder.inverse_transform(prediction)[0]
 
-    data = pd.read_csv('dataset_chatbot.csv')
+    data = pd.read_csv('dataset_chatbot_updated.csv')
     response = data[data['Intent'] == predicted_intent]['Response'].values
     return response[0] if len(response) > 0 else "Sorry, I don't understand your question."
 

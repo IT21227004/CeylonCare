@@ -9,11 +9,11 @@ df = pd.read_csv(input_file)
 
 # Function to create condition-specific intents
 def create_condition_specific_intent(row):
-    base_intent = row['Intent'].lower().replace(' ', '_')
-    condition = row.get('Condition', row.get('Health Condition', 'general')).lower().replace(' ', '_')
-    if pd.isna(condition) or condition in ['unknown', 'healthy', 'general']:
-        return base_intent  # Keep original intent if no valid condition
-    return f"{base_intent}_for_{condition}"
+    base_intent = row['Intent']
+    condition = row.get('Health Condition', row.get('Condition', 'general'))  # Prioritize Health Condition
+    if pd.isna(condition) or condition == 'Unknown' or condition == 'Healthy':
+        return base_intent.lower().replace(' ', '_')  # Keep original intent if no condition
+    return f"{base_intent.lower().replace(' ', '_')}_for_{condition.lower().replace(' ', '_')}"
 
 # Apply the function to create new intents
 df['Intent'] = df.apply(create_condition_specific_intent, axis=1)
