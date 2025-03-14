@@ -15,6 +15,7 @@ const {
   updateHealthData,
   deleteHealthData,
 } = require("./controllers/healthController");
+const { getChatRecommendation } = require("./controllers/chatController");
 
 const app = express();
 app.use(cors({ origin: "*" }));
@@ -32,6 +33,9 @@ app.put("/user/:userId", upload.single("profilePhoto"), updateUserProfile);
 app.get("/healthData/:userId", getHealthData);
 app.put("/healthData/:userId", updateHealthData);
 app.delete("/healthData/:userId", deleteHealthData);
+
+// Chat Recommendation Route
+app.post('/healthChat/:userId', getChatRecommendation);
 
 const PORT = 5000;
 app.listen(PORT, () => {
