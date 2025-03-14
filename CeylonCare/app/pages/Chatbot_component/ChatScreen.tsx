@@ -18,7 +18,7 @@ const ChatScreen = () => {
     console.log(`[DEBUG] Sending message: ${message}`);
 
     try {
-      const response = await axios.post('http://192.168.8.134:5001/chat', {
+      const response = await axios.post('http://192.168.60.22:5001/chat', {
         message,
       }, {
         // Removed Authorization header since no token is used
