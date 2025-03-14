@@ -12,6 +12,7 @@ import Profile from "./pages/profile/Profile";
 import ProfileDetails from "./pages/profile/ProfileDetails";
 import HealthDetails from "./pages/profile/HealthDetails";
 import PrivacyPolicy from "./pages/profile/PrivacyPolicy";
+import ChatScreen from "./pages/Chatbot_component/ChatScreen";
 
 const Stack = createStackNavigator();
 
@@ -66,6 +67,13 @@ const StackNavigator = () => {
       <Stack.Screen
         name="PrivacyPolicy"
         component={PrivacyPolicy}
+        options={{ headerShown: false }}
+      />
+
+      {/* Chatbot_Component */}
+      <Stack.Screen
+        name="ChatScreen"
+        component={ChatScreen}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>
