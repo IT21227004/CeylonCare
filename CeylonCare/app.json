@@ -3,6 +3,7 @@
     "name": "CeylonCare",
     "slug": "CeylonCare",
     "version": "1.0.0",
+    "assetBundlePatterns": ["assets/videos/*"],
     "orientation": "portrait",
     "icon": "",
     "scheme": "myapp",
@@ -33,7 +34,14 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-font"
+      "expo-asset",
+      "expo-font",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow this app to use the camera for AR features."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

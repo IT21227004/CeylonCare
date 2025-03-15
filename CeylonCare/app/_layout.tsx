@@ -13,6 +13,9 @@ import ProfileDetails from "./pages/profile/ProfileDetails";
 import HealthDetails from "./pages/profile/HealthDetails";
 import PrivacyPolicy from "./pages/profile/PrivacyPolicy";
 import ChatScreen from "./pages/Chatbot_component/ChatScreen";
+import TherapyRecommendations from "./pages/AR_component/TherapyRecommendations";
+import TherapyDetails from "./pages/AR_component/TherapyDetails";
+import ARAvatarScreen from "./pages/AR_component/ARAvatarScreen";
 
 const Stack = createStackNavigator();
 
@@ -49,6 +52,8 @@ const StackNavigator = () => {
         component={Home}
         options={{ headerShown: false }}
       />
+
+      {/* Profile */}
       <Stack.Screen
         name="Profile"
         component={Profile}
@@ -70,6 +75,24 @@ const StackNavigator = () => {
         options={{ headerShown: false }}
       />
 
+      {/* AR_Component */}
+      <Stack.Screen
+        name="TherapyRecommendations"
+        component={TherapyRecommendations}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="TherapyDetails"
+        component={TherapyDetails}
+        initialParams={{ therapyName: "Default Therapy" }}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ARAvatarScreen"
+        component={ARAvatarScreen}
+        options={{ headerShown: false }}
+      />
+      
       {/* Chatbot_Component */}
       <Stack.Screen
         name="ChatScreen"

@@ -29,7 +29,7 @@ const BottomNavBar = ({ navigation }: any) => {
       {/* AR Trainer */}
       <TouchableOpacity
         style={styles.navButton}
-        onPress={() => navigation.navigate("Splash")}
+        onPress={() => navigation.navigate("TherapyRecommendations")}
       >
         <Image
           source={require("../assets/images/ar_nav.png")}

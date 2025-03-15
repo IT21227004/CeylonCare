@@ -34,9 +34,9 @@ const buttonData = [
   {
     id: "3",
     title: "AR Trainer",
-    description: "#####",
+    description: "Train smarter with AR guidance!",
     icon: require("../../assets/images/ar_home 1.png"),
-    navigateTo: "Splash",
+    navigateTo: "TherapyRecommendations",
   },
   {
     id: "4",
