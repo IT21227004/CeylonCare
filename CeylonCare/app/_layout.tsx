@@ -12,6 +12,9 @@ import Profile from "./pages/profile/Profile";
 import ProfileDetails from "./pages/profile/ProfileDetails";
 import HealthDetails from "./pages/profile/HealthDetails";
 import PrivacyPolicy from "./pages/profile/PrivacyPolicy";
+import TherapyRecommendations from "./pages/AR_component/TherapyRecommendations";
+import TherapyDetails from "./pages/AR_component/TherapyDetails";
+import ARAvatarScreen from "./pages/AR_component/ARAvatarScreen";
 
 const Stack = createStackNavigator();
 
@@ -48,6 +51,8 @@ const StackNavigator = () => {
         component={Home}
         options={{ headerShown: false }}
       />
+
+      {/* Profile */}
       <Stack.Screen
         name="Profile"
         component={Profile}
@@ -66,6 +71,24 @@ const StackNavigator = () => {
       <Stack.Screen
         name="PrivacyPolicy"
         component={PrivacyPolicy}
+        options={{ headerShown: false }}
+      />
+
+      {/* AR_Component */}
+      <Stack.Screen
+        name="TherapyRecommendations"
+        component={TherapyRecommendations}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="TherapyDetails"
+        component={TherapyDetails}
+        initialParams={{ therapyName: "Default Therapy" }}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ARAvatarScreen"
+        component={ARAvatarScreen}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>
