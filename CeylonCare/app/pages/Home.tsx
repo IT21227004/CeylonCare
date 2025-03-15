@@ -43,7 +43,7 @@ const buttonData = [
     title: "AI Chatbot",
     description: "#####",
     icon: require("../../assets/images/ai_home 1.png"),
-    navigateTo: "Splash",
+    navigateTo: "ChatScreen",
   },
 ];
 

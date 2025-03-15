@@ -40,7 +40,7 @@ const BottomNavBar = ({ navigation }: any) => {
       {/* AI Chatbot */}
       <TouchableOpacity
         style={styles.navButton}
-        onPress={() => navigation.navigate("Splash")}
+        onPress={() => navigation.navigate("ChatScreen")}
       >
         <Image
           source={require("../assets/images/ai_nav.png")}

@@ -12,6 +12,7 @@ import Profile from "./pages/profile/Profile";
 import ProfileDetails from "./pages/profile/ProfileDetails";
 import HealthDetails from "./pages/profile/HealthDetails";
 import PrivacyPolicy from "./pages/profile/PrivacyPolicy";
+import ChatScreen from "./pages/Chatbot_component/ChatScreen";
 import TherapyRecommendations from "./pages/AR_component/TherapyRecommendations";
 import TherapyDetails from "./pages/AR_component/TherapyDetails";
 import ARAvatarScreen from "./pages/AR_component/ARAvatarScreen";
@@ -89,6 +90,13 @@ const StackNavigator = () => {
       <Stack.Screen
         name="ARAvatarScreen"
         component={ARAvatarScreen}
+        options={{ headerShown: false }}
+      />
+      
+      {/* Chatbot_Component */}
+      <Stack.Screen
+        name="ChatScreen"
+        component={ChatScreen}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>
