@@ -140,6 +140,6 @@ def chat():
 if __name__ == '__main__':
     try:
         logger.debug("App starting...")
-        app.run(debug=True, host='0.0.0.0', port=5001)
+        app.run(debug=True, host='0.0.0.0', port=5002)
     except Exception as e:
         logger.error(f"App failed to start: {e}")
