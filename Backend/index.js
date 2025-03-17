@@ -21,7 +21,7 @@ const { getARRecommendations, getTherapyDetails } = require("./controllers/arCon
 const app = express();
 app.use(cors({ origin: "*" }));
 app.use(express.json());
-app.use("/uploads", express.static(path.join(__dirname, "uploads"))); // Serve static files
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // User Routes
 app.post("/register", registerUser);
@@ -46,6 +46,9 @@ app.post('/healthChat/:userId', getChatRecommendation);
 const PORT = 5000;
 app.listen(PORT, () => {
   console.log(`[DEBUG] Backend server running at http://localhost:${PORT}`);
+  console.log('[DEBUG] Registered routes:', app._router.stack
+    .filter(r => r.route)
+    .map(r => `${r.route.path} (${Object.keys(r.route.methods).join(', ')})`));
 });
 
 // Error handling middleware
