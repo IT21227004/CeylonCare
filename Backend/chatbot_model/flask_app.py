@@ -1,4 +1,3 @@
-# Backend/chatbot_model/flask_app.py
 import os
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'  # Suppress oneDNN warnings
 

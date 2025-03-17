@@ -1,4 +1,3 @@
-// Backend/controllers/healthChatController.js
 const axios = require("axios");
 const { getDoc, doc } = require("firebase/firestore");
 const { db } = require("../firebaseConfig");
