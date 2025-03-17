@@ -136,7 +136,7 @@ const ARAvatarScreen = ({ route, navigation }) => {
     });
   };
 
-  // Updated: End session now navigates back instead of to TherapyDetails
+  // navigates back
   const handleEndSession = async () => {
     console.log('[DEBUG] Ending session');
     try {
@@ -147,7 +147,7 @@ const ARAvatarScreen = ({ route, navigation }) => {
       console.log('[DEBUG] Locking to portrait');
       await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP); // Lock to portrait before leaving
       console.log('[INFO] Navigating back to previous screen');
-      navigation.goBack(); // Updated: Navigate back instead of to 'TherapyDetails'
+      navigation.goBack();
     } catch (error) {
       console.error('[ERROR] Failed to end session:', error.message);
     }
