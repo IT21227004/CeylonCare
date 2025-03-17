@@ -1,9 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert, Platform, Pressable } from "react-native";
+import { 
+  View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert, Platform, Pressable, 
+  TouchableOpacity
+} from "react-native";
 import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import { WebView } from "react-native-webview";
 import * as ScreenOrientation from 'expo-screen-orientation';
+import BottomNavBar from "../../BottomNavBar";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 
 // Define Navigation Params Type
 type RootStackParamList = {
@@ -25,7 +31,6 @@ type TherapyDetailsResponse = {
   reference_video?: string;
   steps: string[];
   benefits: string[];
-  duration?: string;
 };
 
 const TherapyDetails: React.FC<TherapyDetailsScreenProps> = ({ route, navigation }) => {
@@ -190,7 +195,7 @@ const TherapyDetails: React.FC<TherapyDetailsScreenProps> = ({ route, navigation
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#00BBD3" />
-        <Text style={styles.debugText}>[DEBUG] Loading therapy details...</Text>
+        <Text style={styles.debugText}>Loading therapy details...</Text>
       </View>
     );
   }
@@ -200,93 +205,136 @@ const TherapyDetails: React.FC<TherapyDetailsScreenProps> = ({ route, navigation
   console.log(`[DEBUG] Platform: ${Platform.OS}, Device API: ${Platform.Version}`);
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <View style={styles.wrapper}>
       {therapyDetails ? (
-        <>
-          <Text style={styles.title}>{therapyDetails.name}</Text>
-          <Text style={styles.description}>{therapyDetails.description}</Text>
-          {therapyDetails.duration && <Text style={styles.duration}>Duration: {therapyDetails.duration}</Text>}
+          <>
+          <TouchableOpacity
+                style={styles.backButton}
+                onPress={() => navigation.goBack()}
+              >
+                <Ionicons name="chevron-back" size={30} color="#00BBD3" />
+              </TouchableOpacity>
 
-          {videoSource && (
-            <View style={styles.videoContainer}>
-              <Text style={styles.videoTitle}>Reference Video</Text>
-              <WebView
-                source={videoSource}
-                style={styles.video}
-                javaScriptEnabled={true}
-                allowsInlineMediaPlayback={true}
-                mediaPlaybackRequiresUserAction={false}
-                onError={(e) => {
-                  console.error(`[ERROR] WebView error: ${JSON.stringify(e.nativeEvent, null, 2)}`);
-                  setError("WebView failed to load video.");
-                  Alert.alert("WebView Error", "Check logs for details.");
-                }}
-                onLoadStart={() => console.log(`[DEBUG] WebView load started`)}
-                onLoad={(s) => console.log(`[DEBUG] WebView load event: ${JSON.stringify(s.nativeEvent, null, 2)}`)}
-                onLoadEnd={() => console.log(`[DEBUG] WebView load ended`)}
-                onMessage={(e) => console.log(`[DEBUG] WebView message: ${e.nativeEvent.data}`)}
-                onHttpError={(s) => console.error(`[ERROR] WebView HTTP error: ${JSON.stringify(s.nativeEvent, null, 2)}`)}
-                onRenderProcessGone={(e) => console.error(`[ERROR] WebView render process gone: ${JSON.stringify(e.nativeEvent, null, 2)}`)}
-              />
-              {error && <Text style={styles.errorText}>{error}</Text>}
-            </View>
-          )}
+      <LinearGradient colors={["#33E4DB", "#00BBD3"]} style={styles.headerContainer}>
+                      <Text style={styles.headerText}>{therapyDetails.name}</Text>
+            </LinearGradient>
 
-          {/* Start AR Avatar Button */}
-          {therapyDetails.ar_pose ? (
+      <ScrollView contentContainerStyle={styles.container}>
+            <Text style={styles.description}>{therapyDetails.description}</Text>
+
+            {videoUri && (
+              <View style={styles.videoContainer}>
+                <Text style={styles.sectionTitle}>Reference Video</Text>
+                <WebView source={{ html: getVideoHtml(videoUri) }} style={styles.video} />
+              </View>
+            )}
+
             <Pressable style={styles.arButton} onPress={handleStartARAvatar}>
-              <Text style={styles.arButtonText}>Start AR Avatar</Text>
+              <Text style={styles.arButtonText}>Start</Text>
             </Pressable>
-          ) : (
-            <Text style={styles.errorText}>AR Avatar not available for this therapy.</Text>
-          )}
 
-          <Text style={styles.stepsTitle}>Steps to Follow:</Text>
-          {therapyDetails.steps.map((step, i) => (
-            <Text key={i} style={styles.stepItem}>{step}</Text>
-          ))}
+            <Text style={styles.sectionTitle}>Steps to Follow:</Text>
+            {therapyDetails.steps.map((step, i) => (
+              <Text key={i} style={styles.listItem}>{`\u2022 ${step}`}</Text>
+            ))}
 
-          <Text style={styles.benefitsTitle}>Benefits:</Text>
-          {therapyDetails.benefits.map((benefit, i) => (
-            <Text key={i} style={styles.benefitItem}>{benefit}</Text>
-          ))}
-        </>
-      ) : (
-        <Text style={styles.errorText}>{error || "Therapy details not found."}</Text>
-      )}
-    </ScrollView>
+            <Text style={styles.sectionTitle}>Benefits:</Text>
+            {therapyDetails.benefits.map((benefit, i) => (
+              <Text key={i} style={styles.listItem}>{`\u2022 ${benefit}`}</Text>
+            ))}
+            </ScrollView>
+          </>
+        ) : (
+          <Text style={styles.errorText}>{error || "No therapy details available."}</Text>
+        )}
+      <BottomNavBar />
+    </View>
   );
 };
 
 // Styles
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, padding: 20, backgroundColor: "#fff" },
-  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
-  title: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 10, color: "#00BBD3" },
-  description: { fontSize: 16, textAlign: "center", color: "#666", marginBottom: 10 },
-  duration: { fontSize: 16, textAlign: "center", fontWeight: "bold", marginBottom: 15, color: "#333" },
-  stepsTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 10, color: "#00BBD3" },
-  stepItem: { fontSize: 16, marginBottom: 5, color: "#333" },
-  benefitsTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 10, color: "#00BBD3" },
-  benefitItem: { fontSize: 16, marginBottom: 5, color: "#333" },
-  videoContainer: { marginVertical: 15 },
-  videoTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 10, color: "#00BBD3", textAlign: "center" },
-  video: { width: "100%", height: 200, borderRadius: 10 },
-  errorText: { fontSize: 16, textAlign: "center", color: "red" },
-  debugText: { fontSize: 14, color: "blue", textAlign: "center", marginBottom: 5 },
-  arButton: {
-    backgroundColor: "#00BBD3",
-    paddingVertical: 12,
+  wrapper: {
+    flex: 1,
+    backgroundColor: "#F8FBFF",
+    marginBottom: 20
+  },
+  backButton: {
+    color: "#00BBD3",
+    marginRight: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+  },
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 20,
     paddingHorizontal: 20,
-    borderRadius: 8,
-    alignSelf: "center",
+  },
+  headerText: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#fff",
+    flex: 1,
+    textAlign: "center",
+  },
+  container: {
+    flexGrow: 1,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    paddingTop: 20,
+  },
+  description: {
+    textAlign: "center",
+    fontSize: 16,
+    color: "#333",
+    lineHeight: 24,
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#33E4DB",
+    marginBottom: 10,
+  },
+  listItem: {
+    fontSize: 16,
+    color: "#333",
+    lineHeight: 24,
+    marginBottom: 10,
+  },
+  videoContainer: {
     marginVertical: 15,
   },
+  video: {
+    height: 200,
+  },
+  arButton: {
+    backgroundColor: "#00BBD3",
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    marginTop: 15,
+    marginBottom: 25
+  },
   arButtonText: {
-    color: "#fff",
+    color: "#FFF",
     fontSize: 16,
     fontWeight: "bold",
-    textAlign: "center",
+  },
+  errorText: {
+    fontSize: 16,
+    color: "red",
+    marginTop: 10,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    fontSize: 16,
+    marginTop: 10,
   },
 });
 
