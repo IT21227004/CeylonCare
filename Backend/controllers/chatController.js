@@ -1,4 +1,3 @@
-// Backend/controllers/healthChatController.js
 const axios = require("axios");
 const { getDoc, doc } = require("firebase/firestore");
 const { db } = require("../firebaseConfig");
@@ -34,7 +33,7 @@ const getChatRecommendation = async (req, res) => {
     console.log(`[DEBUG] User health condition: ${userHealthData.healthCondition || 'general'}`);
 
     // Send chat message and health condition to Flask app
-    const flaskResponse = await axios.post("http://localhost:5002/chat", {
+    const flaskResponse = await axios.post("http://localhost:5001/chat", {
       message: userInput,
       userId: userId,
       healthCondition: userHealthData.healthCondition || "general",
