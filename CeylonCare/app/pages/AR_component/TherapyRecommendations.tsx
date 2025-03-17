@@ -13,6 +13,7 @@ import axios from "axios";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 import BottomNavBar from "../../BottomNavBar";
+import { LinearGradient } from "expo-linear-gradient";
 
 // Define props for navigation
 type RootStackParamList = {
@@ -24,6 +25,7 @@ type TherapyRecommendationsProps = {
   navigation: StackNavigationProp<RootStackParamList, "TherapyRecommendations">;
 };
 
+// Define Type for Therapy Item
 type TherapyItem = string;
 
 // Therapy Recommendations Component
@@ -78,15 +80,15 @@ const TherapyRecommendations: React.FC<TherapyRecommendationsProps> = ({
   return (
     <View style={styles.wrapper}>
       <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="chevron-back" size={24} color="#00BBD3" />
-        </TouchableOpacity>
+                      style={styles.backButton}
+                      onPress={() => navigation.goBack()}
+                    >
+                      <Ionicons name="chevron-back" size={30} color="#00BBD3" />
+                    </TouchableOpacity>
       
-      <View style={styles.headerContainer}>
-        <Text style={styles.headerText}>Schedules For You</Text>
-      </View>
+            <LinearGradient colors={["#33E4DB", "#00BBD3"]} style={styles.headerContainer}>
+                            <Text style={styles.headerText}>Schedules for you</Text>
+                  </LinearGradient>
 
       <ScrollView contentContainerStyle={styles.container}>
         {recommendations.length === 0 ? (
@@ -120,7 +122,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     color: "#00BBD3",
-    marginRight: 10,
+    marginRight: 20,
     paddingVertical: 10,
     paddingHorizontal: 10,
   },
@@ -177,7 +179,7 @@ const styles = StyleSheet.create({
     marginVertical: 5,
   },
   cardArrow: {
-    fontSize: 20,
+    fontSize: 25,
     color: "#00BBD3",
     alignSelf: "flex-end",
   },
