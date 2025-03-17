@@ -9,6 +9,7 @@ node_modules/
 *.pyc
 *.bak
 Backend/uploads/
+Backend/credentials/
 app/build/
 expo/build/
 .DS_Store

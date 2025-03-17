@@ -1,4 +1,3 @@
-# Backend/chatbot_model/flask_app.py
 import os
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'  # Suppress oneDNN warnings
 
@@ -140,6 +139,6 @@ def chat():
 if __name__ == '__main__':
     try:
         logger.debug("App starting...")
-        app.run(debug=True, host='0.0.0.0', port=5002)
+        app.run(debug=True, host='0.0.0.0', port=5001)
     except Exception as e:
         logger.error(f"App failed to start: {e}")
