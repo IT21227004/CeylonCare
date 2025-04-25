@@ -17,11 +17,13 @@ const {
 } = require("./controllers/healthController");
 const { getChatRecommendation } = require("./controllers/chatController");
 const { getARRecommendations, getTherapyDetails } = require("./controllers/arController");
+const fileUpload = require("express-fileupload");
 
 const app = express();
 app.use(cors({ origin: "*" }));
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use(fileUpload());
 
 // User Routes
 app.post("/register", registerUser);

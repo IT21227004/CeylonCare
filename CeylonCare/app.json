@@ -3,7 +3,9 @@
     "name": "CeylonCare",
     "slug": "CeylonCare",
     "version": "1.0.0",
-    "assetBundlePatterns": ["assets/videos/*"],
+    "assetBundlePatterns": [
+      "assets/videos/*"
+    ],
     "orientation": "portrait",
     "icon": "",
     "scheme": "myapp",
@@ -20,7 +22,9 @@
         "foregroundImage": "",
         "backgroundColor": "#ffffff"
       },
-      "permissions": ["android.permission.RECORD_AUDIO"]
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -28,7 +32,6 @@
       "favicon": ""
     },
     "plugins": [
-      "expo-router",
       [
         "expo-splash-screen",
         {
@@ -45,10 +48,8 @@
         {
           "cameraPermission": "Allow this app to use the camera for AR features."
         }
-      ]
-    ],
-    "experiments": {
-      "typedRoutes": true
-    }
+      ],
+      "expo-router"
+    ]
   }
 }
