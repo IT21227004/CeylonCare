@@ -111,7 +111,7 @@ const ChatScreen = () => {
     console.log(`[DEBUG] Sending message: "${textMessage}" for user ${userId}`);
 
     try {
-      const response = await axios.post(`http://192.168.60.22:5000/healthChat/${userId}`, {
+      const response = await axios.post(`http://172.20.10.14:5000/healthChat/${userId}`, {
         message: textMessage,
       }, {
         headers: { 'Content-Type': 'application/json' },
