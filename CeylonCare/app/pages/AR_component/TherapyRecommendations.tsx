@@ -47,7 +47,7 @@ const TherapyRecommendations: React.FC<TherapyRecommendationsProps> = ({ navigat
       console.log(`[DEBUG] Fetching therapy recommendations for user: ${userId}`);
 
       const response = await axios.get<{ recommendations: TherapyItem[] }>(
-        `http://192.168.60.22:5000/ar_therapy/${userId}`
+        `http://172.20.10.14:5000/ar_therapy/${userId}`
       );
 
       console.log("[DEBUG] API Response:", response.data);
