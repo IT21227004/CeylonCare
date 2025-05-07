@@ -67,7 +67,7 @@ const TherapyDetails: React.FC<TherapyDetailsScreenProps> = ({ route, navigation
     try {
       const normalizedTherapyName = therapyName.trim().replace(/%20/g, " ").replace(/-/g, " ");
       console.log(`[DEBUG] Normalized therapy name: ${normalizedTherapyName}`);
-      const requestUrl = `http://172.20.10.14:5000/therapy_details/${encodeURIComponent(normalizedTherapyName)}`;
+      const requestUrl = `http://192.168.8.134:5000/therapy_details/${encodeURIComponent(normalizedTherapyName)}`;
       console.log(`[DEBUG] Request URL: ${requestUrl}`);
 
       const response = await axios.get(requestUrl, { timeout: 10000 });
@@ -363,7 +363,7 @@ export default TherapyDetails;
 //     try {
 //       const normalizedTherapyName = therapyName.trim().replace(/%20/g, " ").replace(/-/g, " ");
 //       console.log(`[DEBUG] Normalized therapy name: ${normalizedTherapyName}`);
-//       const requestUrl = `http://172.20.10.14:5000/therapy_details/${encodeURIComponent(normalizedTherapyName)}`;
+//       const requestUrl = `http://192.168.8.134:5000/therapy_details/${encodeURIComponent(normalizedTherapyName)}`;
 //       console.log(`[DEBUG] Request URL: ${requestUrl}`);
 
 //       const response = await axios.get(requestUrl, { timeout: 10000 });
