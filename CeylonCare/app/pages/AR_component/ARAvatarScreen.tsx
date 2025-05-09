@@ -118,7 +118,7 @@ const ARAvatarScreen = ({ route, navigation }) => {
           recommendations.map(async (therapy: Recommendation) => {
             console.log('[DEBUG] Fetching details for therapy:', therapy.name);
             try {
-              const response = await axios.get(`http://192.168.60.107:5000/therapy_details/${encodeURIComponent(therapy.name)}`, {
+              const response = await axios.get(`http://192.168.8.134:5000/therapy_details/${encodeURIComponent(therapy.name)}`, {
                 timeout: 10000,
               });
               console.log('[DEBUG] API response for therapy details:', JSON.stringify(response.data, null, 2));
