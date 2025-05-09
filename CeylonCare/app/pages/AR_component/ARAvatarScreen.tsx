@@ -51,6 +51,7 @@ const ARAvatarScreen = ({ route, navigation }) => {
   const [poseDetectionError, setPoseDetectionError] = useState<string | null>(null);
   const [isPoseWebViewInitialized, setIsPoseWebViewInitialized] = useState(false);
   const [useCameraView, setUseCameraView] = useState(true);
+  const [zoom, setZoom] = useState(0); // Zoom level state
   const webViewRef = useRef<WebView>(null);
   const poseWebViewRef = useRef<WebView>(null);
 
@@ -118,7 +119,7 @@ const ARAvatarScreen = ({ route, navigation }) => {
           recommendations.map(async (therapy: Recommendation) => {
             console.log('[DEBUG] Fetching details for therapy:', therapy.name);
             try {
-              const response = await axios.get(`http://192.168.8.134:5000/therapy_details/${encodeURIComponent(therapy.name)}`, {
+              const response = await axios.get(`http://192.168.60.107:5000/therapy_details/${encodeURIComponent(therapy.name)}`, {
                 timeout: 10000,
               });
               console.log('[DEBUG] API response for therapy details:', JSON.stringify(response.data, null, 2));
@@ -290,6 +291,18 @@ const ARAvatarScreen = ({ route, navigation }) => {
     } catch (error) {
       console.error('[ERROR] Failed to end session:', error.message);
     }
+  };
+
+  // Zoom In
+  const zoomIn = () => {
+    setZoom(prevZoom => Math.min(prevZoom + 0.1, 1));
+    console.log('[DEBUG] Zooming in, new zoom level:', Math.min(zoom + 0.1, 1));
+  };
+
+  // Zoom Out
+  const zoomOut = () => {
+    setZoom(prevZoom => Math.max(prevZoom - 0.1, 0));
+    console.log('[DEBUG] Zooming out, new zoom level:', Math.max(zoom - 0.1, 0));
   };
 
   // Permission loading state
@@ -476,7 +489,7 @@ const ARAvatarScreen = ({ route, navigation }) => {
               ['right_shoulder', 'right_elbow'],
               ['right_elbow', 'right_wrist'],
               // Left leg
-              ['left_hip', 'left_knee'],
+              ['left_hip', 'left frighten_knee'],
               ['left_knee', 'left_ankle'],
               // Right leg
               ['right_hip', 'right_knee'],
@@ -487,6 +500,7 @@ const ARAvatarScreen = ({ route, navigation }) => {
               console.log('[DEBUG] Pose results received');
               canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
               if (results.poseLandmarks) {
+                console.log('[DEBUG] Pose landmarks detected, count:', results.poseLandmarks.length);
                 const landmarks = results.poseLandmarks.map((lm, index) => ({
                   name: landmarkNames[index] || 'landmark_' + index,
                   x: lm.x * canvasElement.width,
@@ -504,15 +518,19 @@ const ARAvatarScreen = ({ route, navigation }) => {
                   const start = landmarks.find(lm => lm.name === startName);
                   const end = landmarks.find(lm => lm.name === endName);
                   if (start && end) {
+                    console.log('[DEBUG] Drawing line from', startName, 'to', endName);
                     canvasCtx.beginPath();
                     canvasCtx.moveTo(start.x, start.y);
                     canvasCtx.lineTo(end.x, end.y);
                     canvasCtx.stroke();
+                  } else {
+                    console.warn('[WARN] Missing landmark for connection:', startName, 'to', endName);
                   }
                 });
 
                 // Draw dots at landmark positions
                 landmarks.forEach(lm => {
+                  console.log('[DEBUG] Drawing dot at', lm.name, 'x:', lm.x, 'y:', lm.y);
                   canvasCtx.beginPath();
                   canvasCtx.arc(lm.x, lm.y, 5, 0, 2 * Math.PI);
                   canvasCtx.fill();
@@ -546,7 +564,10 @@ const ARAvatarScreen = ({ route, navigation }) => {
                     console.log('[INFO] Video playback started');
                     function processFrame() {
                       if (videoElement.readyState >= 2) {
+                        console.log('[DEBUG] Sending video frame to pose detection');
                         pose.send({ image: videoElement });
+                      } else {
+                        console.log('[DEBUG] Video not ready, state:', videoElement.readyState);
                       }
                       requestAnimationFrame(processFrame);
                     }
@@ -580,6 +601,7 @@ const ARAvatarScreen = ({ route, navigation }) => {
         <Camera.CameraView
           style={StyleSheet.absoluteFill}
           facing="front"
+          zoom={zoom} // Apply zoom level
           onCameraReady={() => {
             console.log('[INFO] Camera is ready');
             setIsCameraReady(true);
@@ -727,6 +749,16 @@ const ARAvatarScreen = ({ route, navigation }) => {
           <Text style={styles.loadingText}>Loading AR Avatar...</Text>
         </View>
       )}
+
+      {/* Zoom Controls */}
+      <View style={styles.zoomControls}>
+        <TouchableOpacity style={styles.zoomButton} onPress={zoomIn}>
+          <Ionicons name="add" size={24} color="white" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.zoomButton} onPress={zoomOut}>
+          <Ionicons name="remove" size={24} color="white" />
+        </TouchableOpacity>
+      </View>
 
       {/* Start/Pause Button */}
       <TouchableOpacity
@@ -885,6 +917,18 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     textAlign: 'center',
+  },
+  zoomControls: {
+    position: 'absolute',
+    bottom: 150,
+    right: 20,
+    flexDirection: 'column',
+  },
+  zoomButton: {
+    backgroundColor: '#00BBD3',
+    padding: 10,
+    borderRadius: 5,
+    marginVertical: 5,
   },
 });
 
