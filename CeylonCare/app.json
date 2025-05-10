@@ -12,6 +12,7 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
+        "NSCameraUsageDescription": "This app uses the camera for real-time pose detection to guide your yoga practice.",
         "NSMicrophoneUsageDescription": "We need microphone access to record your voice for the chatbot."
       }
     },
@@ -20,7 +21,11 @@
         "foregroundImage": "",
         "backgroundColor": "#ffffff"
       },
-      "permissions": ["android.permission.RECORD_AUDIO"]
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.WEBVIEW_MEDIA"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -39,13 +44,7 @@
         }
       ],
       "expo-asset",
-      "expo-font",
-      [
-        "expo-camera",
-        {
-          "cameraPermission": "Allow this app to use the camera for AR features."
-        }
-      ]
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true
