@@ -43,6 +43,7 @@ if not os.path.exists(credentials_path):
 # Load model, tokenizer, label encoder, and dataset at startup
 try:
     model = load_model('best_chatbot_model.keras', compile=False)
+
     with open('tokenizer.pkl', 'rb') as handle:
         tokenizer = pickle.load(handle)
     with open('label_encoder.pkl', 'rb') as f:
@@ -249,5 +250,6 @@ if __name__ == '__main__':
     try:
         logger.debug("App starting...")
         app.run(debug=True, host='0.0.0.0', port=5001)
+
     except Exception as e:
         logger.error(f"App failed to start: {e}")

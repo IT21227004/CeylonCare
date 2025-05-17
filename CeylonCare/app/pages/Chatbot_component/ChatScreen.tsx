@@ -164,6 +164,7 @@ const ChatScreen = () => {
       await FileSystem.moveAsync({
         from: tempUri,
         to: targetPath,
+
       });
       console.log('[DEBUG] File moved successfully');
 
