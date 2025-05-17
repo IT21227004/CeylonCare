@@ -3,7 +3,9 @@
     "name": "CeylonCare",
     "slug": "CeylonCare",
     "version": "1.0.0",
-    "assetBundlePatterns": ["assets/videos/*"],
+    "assetBundlePatterns": [
+      "assets/videos/*"
+    ],
     "orientation": "portrait",
     "icon": "",
     "scheme": "myapp",
@@ -12,15 +14,21 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSMicrophoneUsageDescription": "We need microphone access to record your voice for the chatbot."
-      }
+        "NSMicrophoneUsageDescription": "We need microphone access to record your voice for the chatbot.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "bundleIdentifier": "com.amfdo.CeylonCare"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "",
         "backgroundColor": "#ffffff"
       },
-      "permissions": ["android.permission.RECORD_AUDIO"]
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA"
+      ],
+      "package": "com.amfdo.CeylonCare"
     },
     "web": {
       "bundler": "metro",
@@ -28,7 +36,6 @@
       "favicon": ""
     },
     "plugins": [
-      "expo-router",
       [
         "expo-splash-screen",
         {
@@ -45,10 +52,21 @@
         {
           "cameraPermission": "Allow this app to use the camera for AR features."
         }
-      ]
+      ],
+      "expo-router"
     ],
-    "experiments": {
-      "typedRoutes": true
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "603ec50c-177a-4857-a46f-dca88837e71b"
+      }
+    },
+    "owner": "amfdo",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/603ec50c-177a-4857-a46f-dca88837e71b"
     }
   }
 }
