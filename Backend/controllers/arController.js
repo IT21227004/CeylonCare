@@ -89,4 +89,83 @@ const getTherapyDetails = async (req, res) => {
   }
 };
 
-module.exports = { getARRecommendations, getTherapyDetails };
+// Process Frame for Pose Detection API
+const processFrame = async (req, res) => {
+  const { frame } = req.body;
+
+  if (!frame) {
+    console.error("[ERROR] No frame data provided in request.");
+    return res.status(400).json({ error: "Frame data is required" });
+  }
+
+  console.log("[DEBUG] Received request to process frame");
+
+  try {
+    // Forward the frame to the pose detection service
+    const response = await axios.post('http://localhost:5002/process_frame', { frame }, {
+      timeout: 5000,
+    });
+
+    console.log("[DEBUG] Pose detection service response:", JSON.stringify(response.data, null, 2));
+    res.status(200).json(response.data);
+  } catch (error) {
+    console.error(`[ERROR] Failed to process frame: ${error.message}`);
+    console.error("[DEBUG] Stack trace:", error.stack);
+    res.status(500).json({ error: "Failed to process frame", details: error.message });
+  }
+};
+
+// Fetch target pose landmarks
+const getTherapyPoseLandmarks = async (req, res) => {
+  const { therapyName } = req.params;
+
+  if (!therapyName) {
+    console.error("[ERROR] No therapy name provided in request.");
+    return res.status(400).json({ error: "Therapy name is required" });
+  }
+
+  console.log(`[DEBUG] Fetching pose landmarks for therapy: ${therapyName}`);
+
+  try {
+    console.log("[DEBUG] Firestore db object:", db ? "Initialized" : "Not initialized");
+
+    const normalizedTherapyName = therapyName
+      .trim()
+      .replace(/%20/g, " ")
+      .replace(/-/g, " ");
+
+    console.log(`[DEBUG] Normalized therapy name: ${normalizedTherapyName}`);
+
+    if (!db) {
+      throw new Error("Firestore db is not initialized");
+    }
+
+    const therapyRef = doc(db, "therapies", normalizedTherapyName);
+    console.log("[DEBUG] Therapy reference created:", therapyRef.path);
+
+    const therapySnapshot = await getDoc(therapyRef);
+
+    if (!therapySnapshot.exists()) {
+      console.error(`[ERROR] No therapy details found for: ${normalizedTherapyName}`);
+      return res.status(404).json({ error: `Therapy "${therapyName}" not found in database` });
+    }
+
+    const therapyData = therapySnapshot.data();
+    console.log("[DEBUG] Fetched therapy data:", JSON.stringify(therapyData, null, 2));
+
+    // Assuming landmarks are stored as an array of {name, x, y, z} objects
+    const landmarks = therapyData.landmarks || [];
+    if (!landmarks.length) {
+      console.warn(`[WARN] No landmarks found for ${normalizedTherapyName}`);
+    }
+
+    console.log("[DEBUG] Fetched pose landmarks:", JSON.stringify(landmarks, null, 2));
+    res.status(200).json({ landmarks });
+  } catch (error) {
+    console.error(`[ERROR] Failed to fetch therapy pose landmarks: ${error.message}`);
+    console.error("[DEBUG] Stack trace:", error.stack);
+    res.status(500).json({ error: "Failed to fetch therapy pose landmarks", details: error.message });
+  }
+};
+
+module.exports = { getARRecommendations, getTherapyDetails, processFrame, getTherapyPoseLandmarks };
