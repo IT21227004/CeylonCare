@@ -1,5 +1,6 @@
 import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
+import { RouteProp } from "@react-navigation/native";
 
 // Pages
 import Register from "./pages/Register";
@@ -16,8 +17,27 @@ import ChatScreen from "./pages/Chatbot_component/ChatScreen";
 import TherapyRecommendations from "./pages/AR_component/TherapyRecommendations";
 import TherapyDetails from "./pages/AR_component/TherapyDetails";
 import ARAvatarScreen from "./pages/AR_component/ARAvatarScreen";
+import CameraTest from "./pages/AR_component/CameraTest";
 
-const Stack = createStackNavigator();
+type RootStackParamList = {
+  Splash: undefined;
+  Register: undefined;
+  Login: undefined;
+  ForgotPassword: undefined;
+  Onboarding: undefined;
+  Home: undefined;
+  Profile: undefined;
+  ProfileDetails: undefined;
+  HealthDetails: undefined;
+  PrivacyPolicy: undefined;
+  TherapyRecommendations: undefined;
+  TherapyDetails: { therapyName: string };
+  ARAvatarScreen: undefined;
+  CameraTest: undefined;
+  ChatScreen: undefined;
+};
+
+const Stack = createStackNavigator<RootStackParamList>();
 
 const StackNavigator = () => {
   return (
@@ -90,6 +110,12 @@ const StackNavigator = () => {
       <Stack.Screen
         name="ARAvatarScreen"
         component={ARAvatarScreen}
+        options={{ headerShown: false }}
+      />
+      
+      <Stack.Screen
+        name="CameraTest"
+        component={CameraTest}
         options={{ headerShown: false }}
       />
       
