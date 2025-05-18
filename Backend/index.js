@@ -16,11 +16,15 @@ const {
   deleteHealthData,
 } = require("./controllers/healthController");
 const { getChatRecommendation } = require("./controllers/chatController");
-const { getARRecommendations, getTherapyDetails } = require("./controllers/arController");
+const { getARRecommendations, getTherapyDetails, processFrame } = require("./controllers/arController");
 
 const app = express();
+
+// Custom CORS configuration
 app.use(cors({ origin: "*" }));
-app.use(express.json());
+
+// Increase body size limit for all routes (or apply to specific routes)
+app.use(express.json({ limit: "2mb" })); // Set to 2MB for all requests
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // User Routes
@@ -39,6 +43,7 @@ app.delete("/healthData/:userId", deleteHealthData);
 // AR Therapy Routes
 app.get("/ar_therapy/:userId", getARRecommendations);
 app.get("/therapy_details/:therapyName", getTherapyDetails);
+app.post("/process_frame", express.json({ limit: "2mb" }), processFrame);
 
 // Chatbot Routes
 app.post('/healthChat/:userId', getChatRecommendation);
@@ -54,5 +59,9 @@ app.listen(PORT, () => {
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error("[ERROR] Server Error:", err.stack);
-  res.status(500).json({ error: "Internal server error", message: err.message });
+  if (err.type === 'entity.too.large') {
+    res.status(413).json({ error: "Payload too large", message: "Request body exceeds the allowed limit (2MB)" });
+  } else {
+    res.status(500).json({ error: "Internal server error", message: err.message });
+  }
 });
