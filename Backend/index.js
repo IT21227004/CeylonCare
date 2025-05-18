@@ -26,6 +26,7 @@ app.use(cors({ origin: "*" }));
 // Increase body size limit for all routes (or apply to specific routes)
 app.use(express.json({ limit: "2mb" })); // Set to 2MB for all requests
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use(fileUpload());
 
 // User Routes
 app.post("/register", registerUser);

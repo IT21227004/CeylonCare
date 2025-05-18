@@ -60,8 +60,18 @@
       "expo-font",
       "expo-router"
     ],
-    "experiments": {
-      "typedRoutes": true
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "603ec50c-177a-4857-a46f-dca88837e71b"
+      }
+    },
+    "owner": "amfdo",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/603ec50c-177a-4857-a46f-dca88837e71b"
     }
   }
 }
