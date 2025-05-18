@@ -16,7 +16,7 @@ const {
   deleteHealthData,
 } = require("./controllers/healthController");
 const { getChatRecommendation } = require("./controllers/chatController");
-const { getARRecommendations, getTherapyDetails, processFrame } = require("./controllers/arController");
+const { getARRecommendations, getTherapyDetails, processFrame, getTherapyPoseLandmarks } = require("./controllers/arController");
 
 const app = express();
 
@@ -44,6 +44,7 @@ app.delete("/healthData/:userId", deleteHealthData);
 app.get("/ar_therapy/:userId", getARRecommendations);
 app.get("/therapy_details/:therapyName", getTherapyDetails);
 app.post("/process_frame", express.json({ limit: "2mb" }), processFrame);
+app.get("/therapy_landmarks/:therapyName", getTherapyPoseLandmarks);
 
 // Chatbot Routes
 app.post('/healthChat/:userId', getChatRecommendation);
