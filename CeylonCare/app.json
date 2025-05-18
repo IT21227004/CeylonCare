@@ -3,9 +3,14 @@
     "name": "CeylonCare",
     "slug": "CeylonCare",
     "version": "1.0.0",
-    "assetBundlePatterns": ["assets/videos/*"],
+    "assetBundlePatterns": [
+      "**/*"],
+    "assets": [
+      "./assets/ar_poses/Downward_Dog.glb"
+    ],
     "orientation": "portrait",
     "icon": "",
+    "jsEngine": "jsc",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -18,14 +23,15 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "",
+        "foregroundImage": "./assets/images/logo.png",
         "backgroundColor": "#ffffff"
       },
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",
         "android.permission.WEBVIEW_MEDIA"
-      ]
+      ],
+      "package": "com.amfdo.CeylonCare"
     },
     "web": {
       "bundler": "metro",
@@ -33,18 +39,26 @@
       "favicon": ""
     },
     "plugins": [
-      "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "",
+          "image": "./assets/images/logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
       ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
+          "recordAudioAndroid": true
+        }
+      ],
       "expo-asset",
-      "expo-font"
+      "expo-font",
+      "expo-router"
     ],
     "experiments": {
       "typedRoutes": true

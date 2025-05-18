@@ -89,4 +89,30 @@ const getTherapyDetails = async (req, res) => {
   }
 };
 
-module.exports = { getARRecommendations, getTherapyDetails };
+// Process Frame for Pose Detection API
+const processFrame = async (req, res) => {
+  const { frame } = req.body;
+
+  if (!frame) {
+    console.error("[ERROR] No frame data provided in request.");
+    return res.status(400).json({ error: "Frame data is required" });
+  }
+
+  console.log("[DEBUG] Received request to process frame");
+
+  try {
+    // Forward the frame to the pose detection service
+    const response = await axios.post('http://localhost:5002/process_frame', { frame }, {
+      timeout: 5000,
+    });
+
+    console.log("[DEBUG] Pose detection service response:", JSON.stringify(response.data, null, 2));
+    res.status(200).json(response.data);
+  } catch (error) {
+    console.error(`[ERROR] Failed to process frame: ${error.message}`);
+    console.error("[DEBUG] Stack trace:", error.stack);
+    res.status(500).json({ error: "Failed to process frame", details: error.message });
+  }
+};
+
+module.exports = { getARRecommendations, getTherapyDetails, processFrame };
