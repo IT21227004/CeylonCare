@@ -1,14 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import axios from 'axios';
-import { Canvas, useFrame } from '@react-three/fiber/native';
+import { Canvas as R3FCanvas, useFrame } from '@react-three/fiber/native';
 import { useGLTF, useAnimations } from '@react-three/drei';
 import { Mesh, Box3, Vector3 } from 'three';
 import * as THREE from 'three';
-import { Ionicons } from '@expo/vector-icons'; // For icons
+import { Ionicons } from '@expo/vector-icons';
+import Canvas, { CanvasRenderingContext2D } from 'react-native-canvas';
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const Avatar: React.FC<{ isAnimating: boolean; url: string | null }> = ({ isAnimating, url }) => {
   const dummyTextureLoader = {
@@ -27,14 +30,19 @@ const Avatar: React.FC<{ isAnimating: boolean; url: string | null }> = ({ isAnim
 
   const meshRef = useRef<Mesh>(null!);
   const { actions, mixer } = useAnimations(gltf.animations, gltf.scene);
-  const [avatarScale, setAvatarScale] = useState(2); // Initial scale
-  const [avatarPosition, setAvatarPosition] = useState([0, -1.5, -2]); // Initial position
+  const [avatarScale, setAvatarScale] = useState(2);
+  const [avatarPosition, setAvatarPosition] = useState([0, -1.5, -2]);
 
   useEffect(() => {
     if (gltf.scene) {
       gltf.scene.traverse((child) => {
         if (child instanceof THREE.Mesh) {
-          child.material = new THREE.MeshBasicMaterial({ color: 0xaaaaaa, side: THREE.DoubleSide, transparent: true, opacity: 0.9 });
+          child.material = new THREE.MeshBasicMaterial({ 
+            color: 0xaaaaaa, 
+            side: THREE.DoubleSide, 
+            transparent: true, 
+            opacity: 0.9 
+          });
           child.material.needsUpdate = true;
         }
       });
@@ -55,26 +63,23 @@ const Avatar: React.FC<{ isAnimating: boolean; url: string | null }> = ({ isAnim
         console.log('[DEBUG] Starting animation');
         action.reset().play();
 
-        // Compute bounding box for the initial animated pose
         const boundingBox = new Box3().setFromObject(gltf.scene);
         const size = new Vector3();
         boundingBox.getSize(size);
         const center = new Vector3();
         boundingBox.getCenter(center);
 
-        // Calculate scale to fit within the 250x300 window
         const windowWidth = 250;
         const windowHeight = 300;
-        const modelWidth = Math.max(size.x, 0.1); // Prevent division by zero
+        const modelWidth = Math.max(size.x, 0.1);
         const modelHeight = Math.max(size.y, 0.1);
         const scaleX = (windowWidth * 0.9) / modelWidth;
         const scaleY = (windowHeight * 0.9) / modelHeight;
-        const newScale = Math.max(Math.min(scaleX, scaleY, 1), 2); // Cap between 0.5 and 2
+        const newScale = Math.max(Math.min(scaleX, scaleY, 1), 2);
 
-        // Adjust position to center the model
         const newPosition = [
           -center.x * newScale,
-          -center.y * newScale - 1, // Slight upward offset
+          -center.y * newScale - 1,
           -2,
         ];
 
@@ -87,15 +92,12 @@ const Avatar: React.FC<{ isAnimating: boolean; url: string | null }> = ({ isAnim
     } else if (!isAnimating && mixer) {
       console.log('[DEBUG] Stopping animation');
       mixer.stopAllAction();
-      // Reset to initial position and scale
       setAvatarScale(2);
       setAvatarPosition([0, -1.5, -2]);
     }
   }, [isAnimating, actions, mixer, gltf.scene]);
 
-  useFrame(() => {
-    // No continuous adjustment to avoid performance issues
-  });
+  useFrame(() => {});
 
   return gltf.scene ? (
     <primitive ref={meshRef} object={gltf.scene} position={avatarPosition} scale={avatarScale} />
@@ -111,7 +113,8 @@ const ARAvatarScreen: React.FC<{
   route: { params?: { arPoseUrl?: string; therapyName?: string } };
   navigation: { goBack: () => void };
 }> = ({ route, navigation }) => {
-  const { arPoseUrl = 'https://res.cloudinary.com/dmwaockgw/image/upload/v1741590782/warrior_II_lp2hfq.glb', therapyName = 'Warrior II' } = route.params || {};
+  const { arPoseUrl = 'https://res.cloudinary.com/dmwaockgw/image/upload/v1741590782/warrior_II_lp2hfq.glb', 
+          therapyName = 'Warrior II' } = route.params || {};
 
   const [feedback, setFeedback] = useState<string>('Please stand 2-3 meters back and calibrate.');
   const [shortFeedback, setShortFeedback] = useState<string>('Calibrate to start');
@@ -122,8 +125,10 @@ const ARAvatarScreen: React.FC<{
   const [targetLandmarks, setTargetLandmarks] = useState<any[]>([]);
   const [isCalibrated, setIsCalibrated] = useState<boolean>(false);
   const [matchPercentage, setMatchPercentage] = useState(0);
+  const [userLandmarks, setUserLandmarks] = useState<any[]>([]);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const cameraRef = useRef<CameraView>(null);
+  const canvasRef = useRef<Canvas>(null);
 
   useEffect(() => {
     const originalError = console.error;
@@ -168,7 +173,8 @@ const ARAvatarScreen: React.FC<{
         clearInterval(intervalRef.current);
         console.log('[DEBUG] Frame capture interval cleared');
       }
-      ScreenOrientation.unlockAsync().catch((error) => console.error('[ERROR] Failed to unlock orientation:', error.message));
+      ScreenOrientation.unlockAsync().catch((error) => 
+        console.error('[ERROR] Failed to unlock orientation:', error.message));
     };
   }, []);
 
@@ -190,17 +196,8 @@ const ARAvatarScreen: React.FC<{
 
   useEffect(() => {
     if (isCameraReady && cameraRef.current && permission?.granted && targetLandmarks.length > 0 && isCalibrated) {
-      console.log('[DEBUG] Camera is ready, permissions granted, calibrated, and target landmarks loaded, starting frame capture interval');
+      console.log('[DEBUG] Starting frame capture interval');
       intervalRef.current = setInterval(captureFrame, 500);
-      console.log('[DEBUG] Frame capture interval started (500ms)');
-    } else {
-      console.log('[DEBUG] Frame capture interval not started. Conditions:', {
-        isCameraReady,
-        cameraRefExists: !!cameraRef.current,
-        permissionGranted: permission?.granted,
-        targetLandmarksLoaded: targetLandmarks.length > 0,
-        isCalibrated,
-      });
     }
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
@@ -218,34 +215,36 @@ const ARAvatarScreen: React.FC<{
     try {
       console.log('[DEBUG] Starting camera calibration');
       const photo = await cameraRef.current.takePictureAsync({ base64: true, quality: 0.1 });
-      const response = await axios.post('http://192.168.60.107:5000/process_frame', { frame: photo.base64 }, { timeout: 10000 });
-      console.log('[DEBUG] Calibration frame response:', JSON.stringify(response.data, null, 2));
+      const response = await axios.post('http://192.168.60.107:5000/process_frame', 
+        { frame: photo.base64 }, 
+        { timeout: 10000 }
+      );
 
       if (response.data.landmarks && response.data.landmarks.length > 0) {
         const calibrationOffset = computeCalibrationOffset(response.data.landmarks);
-        console.log('[DEBUG] Calibration offset computed:', JSON.stringify(calibrationOffset, null, 2));
+        console.log('[DEBUG] Calibration offset:', JSON.stringify(calibrationOffset));
         setIsCalibrated(true);
         setFeedback('Calibration successful. Please start posing.');
         setShortFeedback('Calibrated!');
+        captureFrame(); // Trigger initial frame capture after calibration
       } else {
         console.warn('[WARN] No landmarks detected during calibration');
-        setFeedback('Calibration failed. Ensure you are visible to the camera.');
+        setFeedback('Calibration failed. Ensure you are visible.');
         setShortFeedback('No landmarks');
       }
     } catch (error) {
-      console.error('[ERROR] Calibration error:', (error as any)?.message || String(error));
+      console.error('[ERROR] Calibration error:', (error as any)?.message);
       setFeedback('Calibration error. Please try again.');
       setShortFeedback('Calibration failed');
     }
   };
 
   const computeCalibrationOffset = (userLandmarks: any[]) => {
-    const offset = {
+    return {
       x: userLandmarks.reduce((sum, lm) => sum + lm.x, 0) / userLandmarks.length,
       y: userLandmarks.reduce((sum, lm) => sum + lm.y, 0) / userLandmarks.length,
       z: userLandmarks.reduce((sum, lm) => sum + lm.z, 0) / userLandmarks.length,
     };
-    return offset;
   };
 
   const landmarkNames = {
@@ -270,117 +269,166 @@ const ARAvatarScreen: React.FC<{
   };
 
   const comparePoses = (userLandmarks: any[], targetLandmarks: any[]) => {
-  const targetMap = new Map(targetLandmarks.map(lm => [lm.name, lm]));
-  const relevantUserLandmarks = userLandmarks.filter(lm => targetMap.has(lm.name));
+    const targetMap = new Map(targetLandmarks.map(lm => [lm.name, lm]));
+    const relevantUserLandmarks = userLandmarks.filter(lm => targetMap.has(lm.name));
 
-  if (!relevantUserLandmarks.length || !targetLandmarks.length) {
-    setShortFeedback('No landmarks');
-    return 'No matching landmarks. Ensure you are in the correct pose.';
-  }
-
-  const maxDistance = 0.1; // Threshold for a "match"
-  let feedback = '';
-  let shortFeedback = '';
-  let matches = 0;
-
-  relevantUserLandmarks.forEach(userLm => {
-    const targetLm = targetMap.get(userLm.name);
-    const dx = Math.abs(userLm.x - targetLm.x);
-    const dy = Math.abs(userLm.y - targetLm.y);
-    const dz = Math.abs(userLm.z - targetLm.z);
-    const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-
-    if (distance < maxDistance) {
-      matches++;
-    } else if (!shortFeedback) { // Only show the first major adjustment
-      shortFeedback = `Move your ${userLm.name.replace('_', ' ')}`;
-      if (dx > dy && dx > dz) {
-        shortFeedback += userLm.x > targetLm.x ? ' slightly to the left' : ' slightly to the right';
-      } else if (dy > dx && dy > dz) {
-        shortFeedback += userLm.y > targetLm.y ? ' down a bit' : ' up a bit';
-      } else {
-        shortFeedback += userLm.z > targetLm.z ? ' backward a bit' : ' forward a bit';
-      }
-      feedback += shortFeedback + '\n';
+    if (!relevantUserLandmarks.length || !targetLandmarks.length) {
+      setShortFeedback('No landmarks');
+      return 'No matching landmarks. Ensure you are in the correct pose.';
     }
-  });
 
-  const matchPercentage = (matches / relevantUserLandmarks.length) * 100;
-  feedback += `Match: ${matchPercentage.toFixed(1)}%`;
+    const maxDistance = 0.1;
+    let feedback = '';
+    let shortFeedback = '';
+    let matches = 0;
 
-  // Add encouragement based on match percentage
-  if (matchPercentage > 70 && !shortFeedback) {
-    shortFeedback = 'Great pose!';
-  } else if (matchPercentage > 50 && !shortFeedback) {
-    shortFeedback = 'Almost there!';
-  } else if (!shortFeedback) {
-    shortFeedback = 'Keep adjusting!';
-  }
+    relevantUserLandmarks.forEach(userLm => {
+      const targetLm = targetMap.get(userLm.name);
+      const dx = Math.abs(userLm.x - targetLm.x);
+      const dy = Math.abs(userLm.y - targetLm.y);
+      const dz = Math.abs(userLm.z - targetLm.z);
+      const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
-  setShortFeedback(shortFeedback);
-  return feedback || 'No pose detected.';
-};
+      if (distance < maxDistance) {
+        matches++;
+      } else if (!shortFeedback) {
+        shortFeedback = `Move your ${userLm.name.replace('_', ' ')}`;
+        if (dx > dy && dx > dz) {
+          shortFeedback += userLm.x > targetLm.x ? ' slightly to the left' : ' slightly to the right';
+        } else if (dy > dx && dy > dz) {
+          shortFeedback += userLm.y > targetLm.y ? ' down a bit' : ' up a bit';
+        } else {
+          shortFeedback += userLm.z > targetLm.z ? ' backward a bit' : ' forward a bit';
+        }
+        feedback += shortFeedback + '\n';
+      }
+    });
+
+    const matchPercentage = (matches / relevantUserLandmarks.length) * 100;
+    feedback += `Match: ${matchPercentage.toFixed(1)}%`;
+
+    if (matchPercentage > 70 && !shortFeedback) {
+      shortFeedback = 'Great pose!';
+    } else if (matchPercentage > 50 && !shortFeedback) {
+      shortFeedback = 'Almost there!';
+    } else if (!shortFeedback) {
+      shortFeedback = 'Keep adjusting!';
+    }
+
+    setShortFeedback(shortFeedback);
+    return feedback || 'No pose detected.';
+  };
 
   const captureFrame = async () => {
     if (!cameraRef.current || !permission?.granted || !isCalibrated) {
-      console.error('[ERROR] Cannot capture frame: Camera not ready, permission denied, or not calibrated');
-      setFeedback('Please calibrate the camera first.');
+      console.error('[ERROR] Cannot capture frame');
+      setFeedback('Please calibrate first.');
       setShortFeedback('Calibrate first');
       return;
     }
 
     try {
-      console.log('[DEBUG] Starting frame capture');
       const photo = await cameraRef.current.takePictureAsync({ base64: true, quality: 0.1 });
-      console.log('[DEBUG] Frame captured, base64 length:', photo.base64?.length);
-
-      const response = await axios.post('http://192.168.60.107:5000/process_frame', { frame: photo.base64 }, { timeout: 10000 });
-      console.log('[DEBUG] Frame processing response:', JSON.stringify(response.data, null, 2));
+      const response = await axios.post('http://192.168.60.107:5000/process_frame', 
+        { frame: photo.base64 }, 
+        { timeout: 10000 }
+      );
 
       if (response.data.landmarks && response.data.landmarks.length > 0) {
         const mappedLandmarks = mapLandmarks(response.data.landmarks);
+        setUserLandmarks(mappedLandmarks);
         const comparisonFeedback = comparePoses(mappedLandmarks, targetLandmarks);
         const match = parseFloat(comparisonFeedback.match(/Match: (\d+\.\d+)%/)?.[1] || '0');
         setMatchPercentage(match);
         setFeedback(comparisonFeedback);
       } else {
-        console.warn('[WARN] No landmarks detected in frame');
-        setFeedback('No pose detected. Ensure you are visible.');
-        setShortFeedback('No pose detected');
+        console.warn('[WARN] No landmarks detected');
+        setFeedback('No pose detected.');
+        setShortFeedback('No pose');
       }
     } catch (error) {
-      console.error('[ERROR] Frame capture error:', (error as any)?.message || String(error));
-      if (axios.isAxiosError(error)) {
-        if (error.code === 'ECONNABORTED') {
-          setFeedback('Network timeout. Please check your connection.');
-          setShortFeedback('Network timeout');
-        } else if (!error.response) {
-          setFeedback('Network error. Please check your connection.');
-          setShortFeedback('Network error');
-        } else {
-          setFeedback('Error processing frame: ' + (error as any).message);
-          setShortFeedback('Frame error');
-        }
-      } else {
-        setFeedback('Error capturing frame: ' + (error as any)?.message || String(error));
-        setShortFeedback('Capture error');
-      }
+      console.error('[ERROR] Frame capture error:', (error as any)?.message);
+      setFeedback('Error capturing frame.');
+      setShortFeedback('Capture error');
     }
   };
 
-  const retryAsync = async (fn: () => Promise<void>, retries: number, delay: number) => {
-    try {
-      await fn();
-    } catch (error) {
-      if (retries > 0) {
-        console.log('[DEBUG] Retrying after error:', (error as any)?.message || String(error), `Retries left: ${retries}`);
-        await new Promise((resolve) => setTimeout(resolve, delay));
-        await retryAsync(fn, retries - 1, delay * 2);
-      } else {
-        throw error;
+  const drawLandmarks = (ctx: CanvasRenderingContext2D, landmarks: any[], targetLandmarks: any[]) => {
+    if (!ctx) {
+      console.error('[ERROR] Canvas context is null');
+      return;
+    }
+
+    const targetMap = new Map(targetLandmarks.map(lm => [lm.name, lm]));
+    console.log('[DEBUG] Drawing landmarks:', landmarks);
+
+    // Clear canvas
+    ctx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+    // Draw joints
+    landmarks.forEach(lm => {
+      const targetLm = targetMap.get(lm.name);
+      if (targetLm) {
+        const dx = Math.abs(lm.x - targetLm.x);
+        const dy = Math.abs(lm.y - targetLm.y);
+        const dz = Math.abs(lm.z - targetLm.z);
+        const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        const color = distance < 0.1 ? 'green' : 'red';
+
+        // Map normalized coordinates to screen coordinates
+        const x = lm.x * SCREEN_WIDTH;
+        const y = (1 - lm.y) * SCREEN_HEIGHT; // Invert y-axis for correct orientation
+
+        ctx.beginPath();
+        ctx.arc(x, y, 5, 0, 2 * Math.PI);
+        ctx.fillStyle = color;
+        ctx.fill();
       }
+    });
+
+    // Draw pose lines (only after calibration)
+    if (isCalibrated) {
+      const connections = [
+        ['left_shoulder', 'right_shoulder'],
+        ['left_hip', 'right_hip'],
+        ['left_shoulder', 'left_elbow'],
+        ['right_shoulder', 'right_elbow'],
+        ['left_hip', 'left_knee'],
+        ['right_hip', 'right_knee'],
+      ];
+
+      connections.forEach(([start, end]) => {
+        const startLm = landmarks.find(lm => lm.name === start);
+        const endLm = landmarks.find(lm => lm.name === end);
+        if (startLm && endLm) {
+          const startX = startLm.x * SCREEN_WIDTH;
+          const startY = (1 - startLm.y) * SCREEN_HEIGHT;
+          const endX = endLm.x * SCREEN_WIDTH;
+          const endY = (1 - endLm.y) * SCREEN_HEIGHT;
+
+          ctx.beginPath();
+          ctx.moveTo(startX, startY);
+          ctx.lineTo(endX, endY);
+          ctx.strokeStyle = 'white';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          console.log('[DEBUG] Drawing line from', start, 'to', end, 'at', { startX, startY, endX, endY });
+        }
+      });
     }
   };
+
+  useEffect(() => {
+    if (canvasRef.current && userLandmarks.length > 0) {
+      const ctx = canvasRef.current.getContext('2d');
+      if (ctx) {
+        console.log('[DEBUG] Canvas context initialized, drawing landmarks');
+        drawLandmarks(ctx, userLandmarks, targetLandmarks);
+      } else {
+        console.error('[ERROR] Failed to get 2D context');
+      }
+    }
+  }, [userLandmarks, targetLandmarks, isCalibrated]);
 
   if (!permission?.granted) {
     return (
@@ -395,19 +443,28 @@ const ARAvatarScreen: React.FC<{
 
   return (
     <LinearGradient colors={['#1E3A8A', '#3B82F6']} style={styles.container}>
-      <CameraView ref={cameraRef} style={styles.camera} facing="front" onCameraReady={() => setIsCameraReady(true)} />
+      <CameraView 
+        ref={cameraRef} 
+        style={styles.camera} 
+        facing="front" 
+        onCameraReady={() => setIsCameraReady(true)} 
+      />
+      <Canvas ref={canvasRef} style={styles.canvasOverlay} />
       <View style={styles.avatarWindow}>
-        <Canvas style={styles.canvas} camera={{ position: [0, 0, 5], fov: 50 }}>
+        <R3FCanvas style={styles.canvas} camera={{ position: [0, 0, 5], fov: 50 }}>
           <ambientLight intensity={0.5} />
           <directionalLight position={[0, 1, 1]} intensity={0.5} />
           <Avatar isAnimating={isAnimating} url={modelUri} />
-        </Canvas>
+        </R3FCanvas>
       </View>
       <View style={styles.feedbackOverlay}>
         <Text style={styles.matchText}>{matchPercentage.toFixed(1)}%</Text>
         <Text style={styles.feedback}>{shortFeedback}</Text>
         <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: `${matchPercentage}%`, backgroundColor: matchPercentage > 70 ? '#34D399' : '#F87171' }]} />
+          <View style={[styles.progressFill, { 
+            width: `${matchPercentage}%`, 
+            backgroundColor: matchPercentage > 70 ? '#34D399' : '#F87171' 
+          }]} />
         </View>
       </View>
       {!isCalibrated && (
@@ -419,7 +476,10 @@ const ARAvatarScreen: React.FC<{
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => setIsAnimating((prev) => !prev)} style={[styles.startButton, isAnimating ? styles.startButtonActive : null]}>
+        <TouchableOpacity 
+          onPress={() => setIsAnimating((prev) => !prev)} 
+          style={[styles.startButton, isAnimating ? styles.startButtonActive : null]}
+        >
           <Ionicons name={isAnimating ? "pause" : "play"} size={24} color="white" />
         </TouchableOpacity>
       </View>
@@ -441,6 +501,14 @@ const styles = StyleSheet.create({
     height: '100%',
     zIndex: 0,
   },
+  canvasOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
+    zIndex: 1,
+  },
   avatarWindow: {
     position: 'absolute',
     top: 25,
@@ -452,18 +520,17 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     zIndex: 2,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)', // Subtle outline for visibility
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   canvas: {
     width: '100%',
     height: '100%',
-    zIndex: 1,
   },
   feedbackOverlay: {
     position: 'absolute',
     top: 20,
     left: 20,
-    right: 290, // Adjusted to accommodate larger avatar window
+    right: 290,
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
     borderRadius: 15,
     padding: 10,
