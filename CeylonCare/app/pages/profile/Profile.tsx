@@ -70,6 +70,7 @@ const Profile = ({ navigation }: any) => {
       if (!userId) throw new Error("User ID not found");
 
       const response = await fetch(`http://192.168.8.134:5000/user/${userId}`);
+
       if (!response.ok) throw new Error(`Failed to fetch user profile: ${response.status}`);
 
       const data = await response.json();
@@ -86,6 +87,7 @@ const Profile = ({ navigation }: any) => {
   const handleLogout = async () => {
     try {
       console.log("Attempting to log out...");
+
       const response = await fetch("http://192.168.8.134:5000/logout", {
         method: "POST",
       });
