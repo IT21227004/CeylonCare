@@ -55,7 +55,7 @@
     "expo-status-bar": "~2.2.3",
     "expo-symbols": "~0.4.4",
     "expo-system-ui": "~5.0.7",
-    "expo-updates": "~0.28.12",
+    "expo-updates": "^0.28.13",
     "expo-web-browser": "~14.1.6",
     "firebase": "^11.2.0",
     "jest-expo": "~52.0.6",
