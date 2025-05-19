@@ -26,9 +26,7 @@ const Login = ({ navigation }: any) => {
   
     try {
       console.log("Sending login request...");
-
-      const response = await fetch("http://192.168.8.134:5000/login", {
-
+      const response = await fetch("http://192.168.60.22:5000/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -43,6 +41,7 @@ const Login = ({ navigation }: any) => {
       }
   
       const responseData = await response.json();
+      console.log("Login successful. Response data:", responseData);  
       const { user, loginTimestamp } = responseData;
   
       console.log("Login successful. Storing session data...");
@@ -53,7 +52,7 @@ const Login = ({ navigation }: any) => {
       } else {
         await AsyncStorage.setItem("loginTimestamp", loginTimestamp);
       }
-  
+      console.log("User data:", user);
       // Store userId safely
       await AsyncStorage.setItem("userId", user.uid);
   

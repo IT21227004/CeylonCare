@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 interface HealthRiskData {
     id: string;
     userId: string;
+    username: string;
     age: string;
     weight: string;
     height: string;
@@ -22,9 +23,10 @@ interface HealthRiskData {
     workType: string;
     residenceType: string;
     hypertension: string;
+    diabetes: string;
     createdAt: string;
-    diabetesRiskLevel: string;
-    hypertensionRiskLevel: string;
+    diabetes_risk: string;
+    hypertension_risk: string;
 }
 
 const ViewHealthRisk = ({ navigation }: any) => {
@@ -46,6 +48,8 @@ const ViewHealthRisk = ({ navigation }: any) => {
                 return;
             }
 
+            const userName = await AsyncStorage.getItem("userName");
+
             const response = await fetch(`http://192.168.60.22:5000/riskassessment/user/${userId}`, {
                 method: "GET",
                 headers: {
@@ -56,7 +60,14 @@ const ViewHealthRisk = ({ navigation }: any) => {
             const data = await response.json();
 
             if (response.ok) {
-                setHealthRisks(data || []);
+                const updatedData = data.map((item: HealthRiskData) => {
+                    if (!item.username && userName) {
+                        return { ...item, username: userName };
+                    }
+                    return item;
+                });
+
+                setHealthRisks(updatedData || []);
             } else {
                 throw new Error(data.error || "Failed to fetch health risk assessments");
             }
@@ -137,6 +148,7 @@ const ViewHealthRisk = ({ navigation }: any) => {
             >
                 <View style={styles.riskHeader}>
                     <Text style={styles.riskDate}>{formatDate(item.createdAt)}</Text>
+                    {item.username && <Text style={styles.username}>{item.username}</Text>}
                 </View>
 
                 <View style={styles.riskContent}>
@@ -161,6 +173,16 @@ const ViewHealthRisk = ({ navigation }: any) => {
                                 <Text style={styles.detailValue}>{item.smokingStatus}</Text>
                             </View>
                         </View>
+                        <View style={styles.detailRow}>
+                            <View style={styles.detailItem}>
+                                <Text style={styles.detailLabel}>Diabetes:</Text>
+                                <Text style={styles.detailValue}>{item.diabetes === "1" ? "Yes" : "No"}</Text>
+                            </View>
+                            <View style={styles.detailItem}>
+                                <Text style={styles.detailLabel}>Hypertension:</Text>
+                                <Text style={styles.detailValue}>{item.hypertension === "1" ? "Yes" : "No"}</Text>
+                            </View>
+                        </View>
                     </View>
 
                     <View style={styles.riskBadgesContainer}>
@@ -168,20 +190,32 @@ const ViewHealthRisk = ({ navigation }: any) => {
                         <View style={styles.riskBadges}>
                             <View style={[
                                 styles.riskBadge,
-                                item.diabetesRiskLevel.includes("High") ? styles.highRiskBadge :
-                                    item.diabetesRiskLevel.includes("Medium") ? styles.mediumRiskBadge : styles.lowRiskBadge
+                                item.diabetes === "1" ? styles.highRiskBadge :
+                                    item.diabetes_risk === "high" ? styles.highRiskBadge :
+                                        item.diabetes_risk === "medium" ? styles.mediumRiskBadge :
+                                            item.diabetes_risk === "low" ? styles.lowRiskBadge : styles.noRiskBadge
                             ]}>
                                 <Text style={styles.riskBadgeLabel}>Diabetes</Text>
-                                <Text style={styles.riskBadgeText}>{item.diabetesRiskLevel}</Text>
+                                <Text style={styles.riskBadgeText}>
+                                    {item.diabetes === "1" ? "Has Diabetes" :
+                                        !item.diabetes_risk || item.diabetes_risk === "0" ? "No Risk" :
+                                            `${(item.diabetes_risk || "").charAt(0).toUpperCase() + (item.diabetes_risk || "").slice(1)} Risk`}
+                                </Text>
                             </View>
 
                             <View style={[
                                 styles.riskBadge,
-                                item.hypertensionRiskLevel.includes("High") ? styles.highRiskBadge :
-                                    item.hypertensionRiskLevel.includes("Medium") ? styles.mediumRiskBadge : styles.lowRiskBadge
+                                item.hypertension === "1" ? styles.highRiskBadge :
+                                    item.hypertension_risk === "high" ? styles.highRiskBadge :
+                                        item.hypertension_risk === "medium" ? styles.mediumRiskBadge :
+                                            item.hypertension_risk === "low" ? styles.lowRiskBadge : styles.noRiskBadge
                             ]}>
                                 <Text style={styles.riskBadgeLabel}>Hypertension</Text>
-                                <Text style={styles.riskBadgeText}>{item.hypertensionRiskLevel}</Text>
+                                <Text style={styles.riskBadgeText}>
+                                    {item.hypertension === "1" ? "Has Hypertension" :
+                                        !item.hypertension_risk || item.hypertension_risk === "0" ? "No Risk" :
+                                            `${(item.hypertension_risk || "").charAt(0).toUpperCase() + (item.hypertension_risk || "").slice(1)} Risk`}
+                                </Text>
                             </View>
                         </View>
                     </View>
@@ -207,8 +241,8 @@ const ViewHealthRisk = ({ navigation }: any) => {
                 )}
             </TouchableOpacity>
         );
+    };
 
-    }
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -451,6 +485,15 @@ const styles = StyleSheet.create({
         color: '#fff',
         marginLeft: 4,
         fontWeight: 'bold',
+    },
+    username: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: '#004d40',
+    },
+
+    noRiskBadge: {
+        backgroundColor: '#e0e0e0',
     },
 });
 

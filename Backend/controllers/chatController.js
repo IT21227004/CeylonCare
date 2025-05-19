@@ -1,7 +1,6 @@
 const axios = require("axios");
 const { getDoc, doc } = require("firebase/firestore");
 const { db } = require("../firebaseConfig");
-const FormData = require("form-data");
 
 // Chat Recommendation API
 const getChatRecommendation = async (req, res) => {
@@ -29,81 +28,37 @@ const getChatRecommendation = async (req, res) => {
       console.log("[DEBUG] Fetched user health data:", JSON.stringify(userHealthData, null, 2));
     }
 
-    const isVoiceInput = req.files && req.files.audio;
-    let userInput;
-    let languageCode = req.body.languageCode || "en-US";
+    const userInput = req.body.message || "No message provided";
+    console.log(`[DEBUG] Query received: ${userInput}`);
+    console.log(`[DEBUG] User health condition: ${userHealthData.healthCondition || 'general'}`);
 
-    if (isVoiceInput) {
-      // Handle voice input
-      console.log("[DEBUG] Processing voice input");
-      const audioFile = req.files.audio;
-      console.log("[DEBUG] Audio file received:", audioFile.name);
+    // Send chat message and health condition to Flask app
+    const flaskResponse = await axios.post("http://192.168.60.22:5001/chat", {
+      message: userInput,
+      userId: userId,
+      healthCondition: userHealthData.healthCondition || "general",
+    });
 
-      const formData = new FormData();
-      formData.append("audio", audioFile.data, audioFile.name);
-      formData.append("userId", userId);
-      formData.append("languageCode", languageCode);
-      formData.append("healthCondition", userHealthData.healthCondition || "general");
+    console.log("[DEBUG] Flask API Full Response:", JSON.stringify(flaskResponse.data, null, 2));
+    console.log("[DEBUG] Flask Response Status:", flaskResponse.status);
 
-      console.log("[DEBUG] Sending audio to Flask /transcribe endpoint");
-      const flaskResponse = await axios.post("http://localhost:5001/transcribe", formData, {
-        headers: { ...formData.getHeaders() },
-      });
-
-      console.log("[DEBUG] Flask API Full Response:", JSON.stringify(flaskResponse.data, null, 2));
-      console.log("[DEBUG] Flask Response Status:", flaskResponse.status);
-
-      if (!flaskResponse.data || !flaskResponse.data.response) {
-        console.error("[ERROR] Flask response does not contain a valid response.");
-        return res.status(500).json({ error: "Invalid response from Flask API" });
-      }
-
-      const botResponse = flaskResponse.data.response;
-      const transcript = flaskResponse.data.transcript;
-      console.log(`[DEBUG] Transcribed text: ${transcript}`);
-      console.log(`[DEBUG] Bot response: ${botResponse}`);
-
-      const isSinhalaResponse = /[\u0D80-\u0DFF]/.test(botResponse);
-      const queryIsSinhala = /[\u0D80-\u0DFF]/.test(transcript);
-      console.log(`[DEBUG] Query language (inferred): ${queryIsSinhala ? 'Sinhala' : 'English'}`);
-      console.log(`[DEBUG] Response language (inferred): ${isSinhalaResponse ? 'Sinhala' : 'English'}`);
-      if (queryIsSinhala !== isSinhalaResponse) {
-        console.error(`[ERROR] Language mismatch: Query language '${queryIsSinhala ? 'Sinhala' : 'English'}', Response language '${isSinhalaResponse ? 'Sinhala' : 'English'}'`);
-      }
-
-      res.status(200).json({ transcript, response: botResponse });
-    } else {
-      // Handle text input
-      userInput = req.body.message || "No message provided";
-      console.log(`[DEBUG] Query received: ${userInput}`);
-      console.log(`[DEBUG] User health condition: ${userHealthData.healthCondition || 'general'}`);
-
-      const flaskResponse = await axios.post("http://localhost:5001/chat", {
-        message: userInput,
-        userId: userId,
-        healthCondition: userHealthData.healthCondition || "general",
-      });
-
-      console.log("[DEBUG] Flask API Full Response:", JSON.stringify(flaskResponse.data, null, 2));
-      console.log("[DEBUG] Flask Response Status:", flaskResponse.status);
-
-      if (!flaskResponse.data || !flaskResponse.data.response) {
-        console.error("[ERROR] Flask response does not contain a valid response.");
-        return res.status(500).json({ error: "Invalid response from Flask API" });
-      }
-
-      const botResponse = flaskResponse.data.response;
-      console.log(`[DEBUG] Bot response: ${botResponse}`);
-      const isSinhalaResponse = /[\u0D80-\u0DFF]/.test(botResponse);
-      const queryIsSinhala = /[\u0D80-\u0DFF]/.test(userInput);
-      console.log(`[DEBUG] Query language (inferred): ${queryIsSinhala ? 'Sinhala' : 'English'}`);
-      console.log(`[DEBUG] Response language (inferred): ${isSinhalaResponse ? 'Sinhala' : 'English'}`);
-      if (queryIsSinhala !== isSinhalaResponse) {
-        console.error(`[ERROR] Language mismatch: Query language '${queryIsSinhala ? 'Sinhala' : 'English'}', Response language '${isSinhalaResponse ? 'Sinhala' : 'English'}'`);
-      }
-
-      res.status(200).json({ response: botResponse });
+    if (!flaskResponse.data || !flaskResponse.data.response) {
+      console.error("[ERROR] Flask response does not contain a valid response.");
+      return res.status(500).json({ error: "Invalid response from Flask API" });
     }
+
+    // Log response details
+    const botResponse = flaskResponse.data.response;
+    console.log(`[DEBUG] Bot response: ${botResponse}`);
+    const isSinhalaResponse = /[\u0D80-\u0DFF]/.test(botResponse);
+    const queryIsSinhala = /[\u0D80-\u0DFF]/.test(userInput);
+    console.log(`[DEBUG] Query language (inferred): ${queryIsSinhala ? 'Sinhala' : 'English'}`);
+    console.log(`[DEBUG] Response language (inferred): ${isSinhalaResponse ? 'Sinhala' : 'English'}`);
+    if (queryIsSinhala !== isSinhalaResponse) {
+      console.error(`[ERROR] Language mismatch: Query language '${queryIsSinhala ? 'Sinhala' : 'English'}', Response language '${isSinhalaResponse ? 'Sinhala' : 'English'}'`);
+    }
+
+    res.status(200).json({ response: botResponse });
   } catch (error) {
     console.error(`[ERROR] Failed to fetch chat recommendation: ${error.message}`);
     console.error("[DEBUG] Stack trace:", error.stack);

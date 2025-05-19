@@ -9,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface FormData {
   userId: string;
+  username: string;
   age: string;
   weight: string;
   height: string;
@@ -22,11 +23,13 @@ interface FormData {
   workType: string;
   residenceType: string;
   hypertension: string;
+  diabetes: string;
 }
 
 const AddHealthRisk = ({ navigation }: any) => {
   const [formData, setFormData] = useState<FormData>({
-    userId : '',
+    userId: '',
+    username: '',
     age: '',
     weight: '',
     height: '',
@@ -40,6 +43,7 @@ const AddHealthRisk = ({ navigation }: any) => {
     workType: '',
     residenceType: '',
     hypertension: '0',
+    diabetes: '0',
   });
   const [warnings, setWarnings] = useState<string[]>([]);
   const [diabetesResult, setDiabetesResult] = useState<string>('');
@@ -145,15 +149,17 @@ const AddHealthRisk = ({ navigation }: any) => {
   };
 
   const handleSubmit = async () => {
-    navigation.navigate("ViewHealthRisk");
     if (validateForm()) {
       calculateHypertensionRisk();
       calculateDiabetesRisk();
       const userId = await AsyncStorage.getItem("userId");
+      const userName = await AsyncStorage.getItem("userName"); // Add this line
+
       if (userId) {
         formData.userId = userId;
+        formData.username = userName || ""; // Add this line
       }
-  
+
       try {
         console.log("Sending health risk data to backend...");
         const response = await fetch("http://192.168.60.22:5000/riskassessment", {
@@ -163,10 +169,10 @@ const AddHealthRisk = ({ navigation }: any) => {
           },
           body: JSON.stringify(formData),
         });
-  
+
         const responseData = await response.json();
         console.log("Response from backend:", responseData);
-  
+
         if (response.ok) {
           Alert.alert("Success", "Health risk assessment completed successfully");
           // You can navigate to a results page if needed
@@ -178,8 +184,10 @@ const AddHealthRisk = ({ navigation }: any) => {
         console.error("Error in health risk assessment:", error.message);
         Alert.alert("Error", error.message);
       }
+    } else {
+      Alert.alert("Error", "Please fill in all required fields correctly.");
     }
-  };  
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -281,6 +289,25 @@ const AddHealthRisk = ({ navigation }: any) => {
               <RadioButton.Group
                 value={formData.hypertension}
                 onValueChange={(value: string) => handleInputChange('hypertension', value)}
+              >
+                <View style={styles.radioOption}>
+                  <RadioButton value="0" />
+                  <Text>No</Text>
+                </View>
+                <View style={styles.radioOption}>
+                  <RadioButton value="1" />
+                  <Text>Yes</Text>
+                </View>
+              </RadioButton.Group>
+            </View>
+          </View>
+
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Diabetes:</Text>
+            <View style={styles.radioGroup}>
+              <RadioButton.Group
+                value={formData.diabetes}
+                onValueChange={(value: string) => handleInputChange('diabetes', value)}
               >
                 <View style={styles.radioOption}>
                   <RadioButton value="0" />
@@ -472,7 +499,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     alignItems: 'center',
     marginTop: 20,
-    marginBottom: 10,
+    marginBottom: 30,
   },
   buttonText: {
     color: 'white',
@@ -484,6 +511,7 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: '#ffe6e6',
     borderRadius: 5,
+    marginBottom: 20,
   },
   warningText: {
     color: 'red',

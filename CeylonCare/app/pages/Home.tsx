@@ -71,13 +71,13 @@ const Home = ({ navigation }: any) => {
       const userId = await AsyncStorage.getItem("userId");
       if (!userId) throw new Error("User ID not found");
 
-      const response = await fetch(`http://192.168.8.134:5000/user/${userId}`);
-
+      const response = await fetch(`http://192.168.60.22:5000/user/${userId}`);
       if (!response.ok) throw new Error("Failed to fetch user profile");
 
       const data = await response.json();
       console.log("User profile fetched successfully:", data);
       setUserData(data);
+      await AsyncStorage.setItem("userName", data.fullName);
     } catch (error) {
       console.error("Error fetching user profile:", error.message);
       Alert.alert("Error", error.message);

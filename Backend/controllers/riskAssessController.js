@@ -97,6 +97,7 @@ const createRiskAssessment = async (req, res) => {
   try {
     const {
       userId,
+      username,
       age,
       weight,
       height,
@@ -109,7 +110,8 @@ const createRiskAssessment = async (req, res) => {
       smokingStatus,
       workType,
       residenceType,
-      hypertension
+      hypertension,
+      diabetes
     } = req.body;
 
     if (!userId) {
@@ -121,49 +123,56 @@ const createRiskAssessment = async (req, res) => {
     const riskAssessRef = doc(db, "riskAssessments", riskAssessId);
 
     // Calculate risk levels
-    let diabetesRiskLevel = "Low Risk";
-    let hypertensionRiskLevel = "Low Risk";
+    let diabetesRiskLevel = "0";
+    let hypertensionRiskLevel = "0";
 
-    // Diabetes risk calculation
-    let riskScore = 0;
-    
-    if (parseFloat(hba1cLevel) >= 6.5) {
-      diabetesRiskLevel = "High Risk";
-    } else if (parseFloat(hba1cLevel) >= 5.7) {
-      diabetesRiskLevel = "Medium Risk";
-    }
-    
-    if (parseFloat(bloodGlucoseLevel) >= 7.0) {
-      diabetesRiskLevel = "High Risk";
-    } else if (parseFloat(bloodGlucoseLevel) >= 5.6) {
-      diabetesRiskLevel = "Medium Risk";
-    }
-    
-    if (diabetesRiskLevel === "Low Risk") {
-      if (parseFloat(age) > 60) riskScore++;
-      if (hypertension === "1") riskScore++;
-      if (heartDisease === "1") riskScore++;
-      if (smokingStatus === "formerly smoked") riskScore++;
-      if (smokingStatus === "smokes") riskScore += 2;
-      if (parseFloat(bmi) > 25) riskScore += 2;
-      if (parseFloat(bmi) > 30) riskScore += 3;
+    // Diabetes risk calculation - only if diabetes is 0 (no diabetes)
+    if (diabetes === "0") {
+      let riskScore = 0;
       
-      if (riskScore >= 5) diabetesRiskLevel = "High Risk";
-      else if (riskScore >= 3) diabetesRiskLevel = "Medium Risk";
-      else if (riskScore === 0) diabetesRiskLevel = "No Risk";
+      if (parseFloat(hba1cLevel) >= 6.5) {
+        diabetesRiskLevel = "high";
+      } else if (parseFloat(hba1cLevel) >= 5.7) {
+        diabetesRiskLevel = "medium";
+      }
+      
+      if (parseFloat(bloodGlucoseLevel) >= 7.0) {
+        diabetesRiskLevel = "high";
+      } else if (parseFloat(bloodGlucoseLevel) >= 5.6) {
+        diabetesRiskLevel = "medium";
+      }
+      
+      if (diabetesRiskLevel === "0") {
+        if (parseFloat(age) > 60) riskScore++;
+        if (hypertension === "1") riskScore++;
+        if (heartDisease === "1") riskScore++;
+        if (smokingStatus === "formerly smoked") riskScore++;
+        if (smokingStatus === "smokes") riskScore += 2;
+        if (parseFloat(bmi) > 25) riskScore += 2;
+        if (parseFloat(bmi) > 30) riskScore += 3;
+        
+        if (riskScore >= 5) diabetesRiskLevel = "high";
+        else if (riskScore >= 3) diabetesRiskLevel = "medium";
+        else if (riskScore > 0) diabetesRiskLevel = "low";
+      }
     }
 
-    // Hypertension risk calculation
-    if (smokingStatus === "smokes") {
-      hypertensionRiskLevel = "High Risk";
-    } else if (parseFloat(age) > 65) {
-      hypertensionRiskLevel = "Medium Risk";
-    } else if (heartDisease === "1") {
-      hypertensionRiskLevel = "High Risk";
+    // Hypertension risk calculation - only if hypertension is 0 (no hypertension)
+    if (hypertension === "0") {
+      if (smokingStatus === "smokes") {
+        hypertensionRiskLevel = "high";
+      } else if (parseFloat(age) > 65) {
+        hypertensionRiskLevel = "medium";
+      } else if (heartDisease === "1") {
+        hypertensionRiskLevel = "high";
+      } else if (hypertensionRiskLevel === "0" && (parseFloat(age) > 50 || parseFloat(bmi) > 30)) {
+        hypertensionRiskLevel = "low";
+      }
     }
 
     const data = {
       userId,
+      username: username || "",
       age: age || "",
       weight: weight || "",
       height: height || "",
@@ -177,8 +186,9 @@ const createRiskAssessment = async (req, res) => {
       workType: workType || "",
       residenceType: residenceType || "",
       hypertension: hypertension || "0",
-      diabetesRiskLevel,
-      hypertensionRiskLevel,
+      diabetes: diabetes || "0",
+      diabetes_risk: diabetesRiskLevel,
+      hypertension_risk: hypertensionRiskLevel,
       createdAt: new Date().toISOString(),
     };
 
@@ -197,7 +207,7 @@ const createRiskAssessment = async (req, res) => {
     );
     res.status(500).json({ error: "Failed to create risk assessment" });
   }
-};
+}
 
 // Update Risk Assessment
 const updateRiskAssessment = async (req, res) => {
@@ -215,6 +225,7 @@ const updateRiskAssessment = async (req, res) => {
     }
 
     const {
+      username,
       age,
       weight,
       height,
@@ -227,52 +238,60 @@ const updateRiskAssessment = async (req, res) => {
       smokingStatus,
       workType,
       residenceType,
-      hypertension
+      hypertension,
+      diabetes
     } = req.body;
 
     // Calculate risk levels
-    let diabetesRiskLevel = "Low Risk";
-    let hypertensionRiskLevel = "Low Risk";
+    let diabetesRiskLevel = "0";
+    let hypertensionRiskLevel = "0";
 
-    // Diabetes risk calculation
-    let riskScore = 0;
-    
-    if (parseFloat(hba1cLevel) >= 6.5) {
-      diabetesRiskLevel = "High Risk";
-    } else if (parseFloat(hba1cLevel) >= 5.7) {
-      diabetesRiskLevel = "Medium Risk";
-    }
-    
-    if (parseFloat(bloodGlucoseLevel) >= 7.0) {
-      diabetesRiskLevel = "High Risk";
-    } else if (parseFloat(bloodGlucoseLevel) >= 5.6) {
-      diabetesRiskLevel = "Medium Risk";
-    }
-    
-    if (diabetesRiskLevel === "Low Risk") {
-      if (parseFloat(age) > 60) riskScore++;
-      if (hypertension === "1") riskScore++;
-      if (heartDisease === "1") riskScore++;
-      if (smokingStatus === "formerly smoked") riskScore++;
-      if (smokingStatus === "smokes") riskScore += 2;
-      if (parseFloat(bmi) > 25) riskScore += 2;
-      if (parseFloat(bmi) > 30) riskScore += 3;
+    // Diabetes risk calculation - only if diabetes is 0 (no diabetes)
+    if (diabetes === "0") {
+      let riskScore = 0;
       
-      if (riskScore >= 5) diabetesRiskLevel = "High Risk";
-      else if (riskScore >= 3) diabetesRiskLevel = "Medium Risk";
-      else if (riskScore === 0) diabetesRiskLevel = "No Risk";
+      if (parseFloat(hba1cLevel) >= 6.5) {
+        diabetesRiskLevel = "high";
+      } else if (parseFloat(hba1cLevel) >= 5.7) {
+        diabetesRiskLevel = "medium";
+      }
+      
+      if (parseFloat(bloodGlucoseLevel) >= 7.0) {
+        diabetesRiskLevel = "high";
+      } else if (parseFloat(bloodGlucoseLevel) >= 5.6) {
+        diabetesRiskLevel = "medium";
+      }
+      
+      if (diabetesRiskLevel === "0") {
+        if (parseFloat(age) > 60) riskScore++;
+        if (hypertension === "1") riskScore++;
+        if (heartDisease === "1") riskScore++;
+        if (smokingStatus === "formerly smoked") riskScore++;
+        if (smokingStatus === "smokes") riskScore += 2;
+        if (parseFloat(bmi) > 25) riskScore += 2;
+        if (parseFloat(bmi) > 30) riskScore += 3;
+        
+        if (riskScore >= 5) diabetesRiskLevel = "high";
+        else if (riskScore >= 3) diabetesRiskLevel = "medium";
+        else if (riskScore > 0) diabetesRiskLevel = "low";
+      }
     }
 
-    // Hypertension risk calculation
-    if (smokingStatus === "smokes") {
-      hypertensionRiskLevel = "High Risk";
-    } else if (parseFloat(age) > 65) {
-      hypertensionRiskLevel = "Medium Risk";
-    } else if (heartDisease === "1") {
-      hypertensionRiskLevel = "High Risk";
+    // Hypertension risk calculation - only if hypertension is 0 (no hypertension)
+    if (hypertension === "0") {
+      if (smokingStatus === "smokes") {
+        hypertensionRiskLevel = "high";
+      } else if (parseFloat(age) > 65) {
+        hypertensionRiskLevel = "medium";
+      } else if (heartDisease === "1") {
+        hypertensionRiskLevel = "high";
+      } else if (hypertensionRiskLevel === "0" && (parseFloat(age) > 50 || parseFloat(bmi) > 30)) {
+        hypertensionRiskLevel = "low";
+      }
     }
 
     const data = {
+      username: username || riskAssessSnapshot.data().username,
       age: age || riskAssessSnapshot.data().age,
       weight: weight || riskAssessSnapshot.data().weight,
       height: height || riskAssessSnapshot.data().height,
@@ -286,8 +305,9 @@ const updateRiskAssessment = async (req, res) => {
       workType: workType || riskAssessSnapshot.data().workType,
       residenceType: residenceType || riskAssessSnapshot.data().residenceType,
       hypertension: hypertension || riskAssessSnapshot.data().hypertension,
-      diabetesRiskLevel,
-      hypertensionRiskLevel,
+      diabetes: diabetes || riskAssessSnapshot.data().diabetes || "0",
+      diabetes_risk: diabetesRiskLevel,
+      hypertension_risk: hypertensionRiskLevel,
       updatedAt: new Date().toISOString(),
     };
 

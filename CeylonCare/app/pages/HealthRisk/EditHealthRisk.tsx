@@ -9,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface FormData {
     userId: string;
+    username: string;
     age: string;
     weight: string;
     height: string;
@@ -22,12 +23,14 @@ interface FormData {
     workType: string;
     residenceType: string;
     hypertension: string;
+    diabetes: string;
 }
 
 const EditHealthRisk = ({ route, navigation }: any) => {
     const { riskData } = route.params;
     const [formData, setFormData] = useState<FormData>({
         userId: riskData.userId || '',
+        username: riskData.username || '',
         age: riskData.age || '',
         weight: riskData.weight || '',
         height: riskData.height || '',
@@ -41,7 +44,9 @@ const EditHealthRisk = ({ route, navigation }: any) => {
         workType: riskData.workType || '',
         residenceType: riskData.residenceType || '',
         hypertension: riskData.hypertension || '0',
+        diabetes: riskData.diabetes || '0',
     });
+
     const [warnings, setWarnings] = useState<string[]>([]);
     const [diabetesResult, setDiabetesResult] = useState<string>('');
     const [hypertensionResult, setHypertensionResult] = useState<string>('');
@@ -152,17 +157,13 @@ const EditHealthRisk = ({ route, navigation }: any) => {
         if (validateForm()) {
             setIsLoading(true);
             try {
-                const diabetesRiskLevel = calculateDiabetesRisk();
-                const hypertensionRiskLevel = calculateHypertensionRisk();
-
-                // Prepare updated data with risk levels
+                // We don't need to calculate risk levels here as the backend will handle it
+                // Just prepare the data to send
                 const updatedData = {
-                    ...formData,
-                    diabetesRiskLevel,
-                    hypertensionRiskLevel
+                    ...formData
                 };
 
-                const response = await fetch(`http://192.168.60.22:5000/riskassessment/${riskData.id}`, {
+                const response = await fetch(`http:/192.168.60.22:5000/riskassessment/${riskData.id}`, {
                     method: "PUT",
                     headers: {
                         "Content-Type": "application/json",
@@ -301,6 +302,25 @@ const EditHealthRisk = ({ route, navigation }: any) => {
                                 <RadioButton.Group
                                     value={formData.hypertension}
                                     onValueChange={(value: string) => handleInputChange('hypertension', value)}
+                                >
+                                    <View style={styles.radioOption}>
+                                        <RadioButton value="0" />
+                                        <Text>No</Text>
+                                    </View>
+                                    <View style={styles.radioOption}>
+                                        <RadioButton value="1" />
+                                        <Text>Yes</Text>
+                                    </View>
+                                </RadioButton.Group>
+                            </View>
+                        </View>
+
+                        <View style={styles.formGroup}>
+                            <Text style={styles.label}>Diabetes:</Text>
+                            <View style={styles.radioGroup}>
+                                <RadioButton.Group
+                                    value={formData.diabetes}
+                                    onValueChange={(value: string) => handleInputChange('diabetes', value)}
                                 >
                                     <View style={styles.radioOption}>
                                         <RadioButton value="0" />
@@ -512,6 +532,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         flex: 2,
         marginLeft: 10,
+        marginBottom: 30,
     },
     updateButtonText: {
         color: 'white',
@@ -524,6 +545,7 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         alignItems: 'center',
         flex: 1,
+        marginBottom: 30,
     },
     cancelButtonText: {
         color: '#424242',
@@ -535,6 +557,7 @@ const styles = StyleSheet.create({
         padding: 10,
         backgroundColor: '#ffe6e6',
         borderRadius: 5,
+        marginBottom: 20,
     },
     warningText: {
         color: 'red',

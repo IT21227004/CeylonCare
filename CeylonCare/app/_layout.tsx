@@ -1,6 +1,5 @@
 import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
-import { RouteProp } from "@react-navigation/native";
 
 // Pages
 import Register from "./pages/Register";
@@ -20,62 +19,10 @@ import ARAvatarScreen from "./pages/AR_component/ARAvatarScreen";
 import ViewHealthRisk from "./pages/HealthRisk/ViewHealthRisk";
 import AddHealthRisk from "./pages/HealthRisk/AddHealthRisk";
 import EditHealthRisk from "./pages/HealthRisk/EditHealthRisk";
-import CameraTest from "./pages/AR_component/CameraTest";
 
-type RootStackParamList = {
-  Splash: undefined;
-  Register: undefined;
-  Login: undefined;
-  ForgotPassword: undefined;
-  Onboarding: undefined;
-  Home: undefined;
-  Profile: undefined;
-  ProfileDetails: undefined;
-  HealthDetails: undefined;
-  PrivacyPolicy: undefined;
-  TherapyRecommendations: undefined;
-  TherapyDetails: { therapyName: string };
-  ARAvatarScreen: undefined;
-  CameraTest: undefined;
-  ChatScreen: undefined;
-};
-
-const Stack = createStackNavigator<RootStackParamList>();
-
-// Validate all screen components
-const validateScreenComponent = (name: string, component: any) => {
-  if (!component || typeof component !== 'function') {
-    console.error(`[ERROR] Screen component "${name}" is invalid or undefined`);
-    return false;
-  }
-  console.log(`[DEBUG] Screen component "${name}" loaded successfully`);
-  return true;
-};
+const Stack = createStackNavigator();
 
 const StackNavigator = () => {
-  console.log('[DEBUG] StackNavigator initialized');
-
-  // Validate all screen components before rendering
-  const screens = [
-    { name: 'Splash', component: SplashScreen },
-    { name: 'Register', component: Register },
-    { name: 'Login', component: Login },
-    { name: 'ForgotPassword', component: ForgotPassword },
-    { name: 'Onboarding', component: Onboarding },
-    { name: 'Home', component: Home },
-    { name: 'Profile', component: Profile },
-    { name: 'ProfileDetails', component: ProfileDetails },
-    { name: 'HealthDetails', component: HealthDetails },
-    { name: 'PrivacyPolicy', component: PrivacyPolicy },
-    { name: 'TherapyRecommendations', component: TherapyRecommendations },
-    { name: 'TherapyDetails', component: TherapyDetails },
-    { name: 'ARAvatarScreen', component: ARAvatarScreen },
-    { name: 'ChatScreen', component: ChatScreen },
-  ];
-
-  // Log validation results
-  screens.forEach(screen => validateScreenComponent(screen.name, screen.component));
-
   return (
     <Stack.Navigator initialRouteName="Splash">
       <Stack.Screen
@@ -108,6 +55,7 @@ const StackNavigator = () => {
         component={Home}
         options={{ headerShown: false }}
       />
+
       {/* Profile */}
       <Stack.Screen
         name="Profile"
@@ -129,6 +77,7 @@ const StackNavigator = () => {
         component={PrivacyPolicy}
         options={{ headerShown: false }}
       />
+
       {/* AR_Component */}
       <Stack.Screen
         name="TherapyRecommendations"
@@ -138,18 +87,12 @@ const StackNavigator = () => {
       <Stack.Screen
         name="TherapyDetails"
         component={TherapyDetails}
-        initialParams={{ therapyName: 'Default Therapy' }}
+        initialParams={{ therapyName: "Default Therapy" }}
         options={{ headerShown: false }}
       />
       <Stack.Screen
         name="ARAvatarScreen"
         component={ARAvatarScreen}
-        options={{ headerShown: false }}
-      />
-      
-      <Stack.Screen
-        name="CameraTest"
-        component={CameraTest}
         options={{ headerShown: false }}
       />
       

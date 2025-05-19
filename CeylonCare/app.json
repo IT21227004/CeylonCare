@@ -3,35 +3,24 @@
     "name": "CeylonCare",
     "slug": "CeylonCare",
     "version": "1.0.0",
-    "assetBundlePatterns": [
-      "**/*"],
-    "assets": [
-      "./assets/ar_poses/Downward_Dog.glb"
-    ],
+    "assetBundlePatterns": ["assets/videos/*"],
     "orientation": "portrait",
     "icon": "",
-    "jsEngine": "jsc",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSCameraUsageDescription": "This app uses the camera for real-time pose detection to guide your yoga practice.",
         "NSMicrophoneUsageDescription": "We need microphone access to record your voice for the chatbot."
       }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/logo.png",
+        "foregroundImage": "",
         "backgroundColor": "#ffffff"
       },
-      "permissions": [
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO",
-        "android.permission.WEBVIEW_MEDIA"
-      ],
-      "package": "com.amfdo.CeylonCare"
+      "permissions": ["android.permission.RECORD_AUDIO"]
     },
     "web": {
       "bundler": "metro",
@@ -39,39 +28,27 @@
       "favicon": ""
     },
     "plugins": [
+      "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/logo.png",
+          "image": "",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
       ],
+      "expo-asset",
+      "expo-font",
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
-          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
-          "recordAudioAndroid": true
+          "cameraPermission": "Allow this app to use the camera for AR features."
         }
-      ],
-      "expo-asset",
-      "expo-font",
-      "expo-router"
+      ]
     ],
-    "extra": {
-      "router": {},
-      "eas": {
-        "projectId": "603ec50c-177a-4857-a46f-dca88837e71b"
-      }
-    },
-    "owner": "amfdo",
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
-    "updates": {
-      "url": "https://u.expo.dev/603ec50c-177a-4857-a46f-dca88837e71b"
+    "experiments": {
+      "typedRoutes": true
     }
   }
 }
