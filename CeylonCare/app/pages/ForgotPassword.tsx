@@ -24,7 +24,7 @@ const ForgotPassword = ({ navigation }: any) => {
     try {
       console.log("Sending password reset request...");
       
-      const response = await fetch("http://192.168.8.134:5000/forgetPassword", {
+      const response = await fetch("http://192.168.1.108:5000/forgetPassword", {
 
         method: "POST",
         headers: {

@@ -27,7 +27,7 @@ const Login = ({ navigation }: any) => {
     try {
       console.log("Sending login request...");
 
-      const response = await fetch("http://192.168.8.134:5000/login", {
+      const response = await fetch("http://192.168.1.108:5000/login", {
 
         method: "POST",
         headers: {
@@ -60,13 +60,14 @@ const Login = ({ navigation }: any) => {
       Alert.alert("Success", "Logged in successfully!");
       navigation.navigate("Onboarding");
     } catch (error) {
-      console.error("Login error:", error.message);
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      console.error("Login error:", errorMessage);
   
       // Clear any existing session data to avoid inconsistencies
       await AsyncStorage.removeItem("userId");
       await AsyncStorage.removeItem("loginTimestamp");
   
-      Alert.alert("Error", error.message);
+      Alert.alert("Error", errorMessage);
     }
   };  
 
@@ -137,7 +138,7 @@ const Login = ({ navigation }: any) => {
         </View>
 
         <Text style={styles.footer}>
-          Don’t have an account?{" "}
+          Don't have an account?{" "}
           <Text
             style={styles.link}
             onPress={() => navigation.navigate("Register")}

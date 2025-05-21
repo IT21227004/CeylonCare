@@ -14,9 +14,11 @@ const {
   getHealthData,
   updateHealthData,
   deleteHealthData,
+  getHealthDataForRecommendations
 } = require("./controllers/healthController");
 const { getChatRecommendation } = require("./controllers/chatController");
 const { getARRecommendations, getTherapyDetails, processFrame, getTherapyPoseLandmarks } = require("./controllers/arController");
+const mlController = require('./controllers/mlController');
 
 const app = express();
 
@@ -26,7 +28,7 @@ app.use(cors({ origin: "*" }));
 // Increase body size limit for all routes (or apply to specific routes)
 app.use(express.json({ limit: "2mb" })); // Set to 2MB for all requests
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-app.use(fileUpload());
+//app.use(fileUpload());
 
 // User Routes
 app.post("/register", registerUser);
@@ -40,6 +42,19 @@ app.put("/user/:userId", upload.single("profilePhoto"), updateUserProfile);
 app.get("/healthData/:userId", getHealthData);
 app.put("/healthData/:userId", updateHealthData);
 app.delete("/healthData/:userId", deleteHealthData);
+
+// New route for ML recommendations
+app.get('/:userId/recommendations', getHealthDataForRecommendations);
+// ML Model Management
+app.post('/setup', mlController.setupMLModels.bind(mlController));
+app.get('/health', mlController.healthCheck.bind(mlController));
+app.get('/model-info', mlController.getModelInfo.bind(mlController));
+
+// ML Predictions
+app.post('/recommendations', mlController.getFoodRecommendations.bind(mlController));
+app.get('/similar-foods/:foodId', mlController.getSimilarFoods.bind(mlController));
+app.post('/meal-plan', mlController.generateMealPlan.bind(mlController));
+app.post('/analyze-image', mlController.analyzeFoodImage.bind(mlController));
 
 // AR Therapy Routes
 app.get("/ar_therapy/:userId", getARRecommendations);
