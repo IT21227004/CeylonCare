@@ -145,7 +145,7 @@ const ARAvatarScreen: React.FC<{
           throw new Error('Camera is not available.');
         }
         const photo = await cameraRef.current.takePictureAsync({ base64: true, quality: 0.3 });
-        const response = await axios.post('http://192.168.1.108:5000/process_frame', { frame: photo.base64 }, { timeout: 5000 });
+        const response = await axios.post('http://192.168.8.134:5000/process_frame', { frame: photo.base64 }, { timeout: 5000 });
         const landmarks = response.data.landmarks;
         setFeedback(landmarks?.length > 0 ? 'Pose detected successfully!' : 'No pose detected.');
       }, 3, 1000);

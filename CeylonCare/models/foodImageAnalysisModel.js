@@ -3,7 +3,7 @@
 class FoodImageAnalysisModel {
     constructor() {
       // point this at your Express server
-      this.apiBaseUrl = 'http://192.168.1.108:5000';
+      this.apiBaseUrl = 'http://192.168.8.134:5000';
     }
   
     /**
