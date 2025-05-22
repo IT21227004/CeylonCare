@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 // Mock data for Sri Lankan foods
@@ -98,89 +98,111 @@ const ManualFoodInput = () => {
         <Text style={styles.headerTitle}>Manual Food Input</Text>
       </View>
       
-      <View style={styles.contentContainer}>
-        <Text style={styles.sectionTitle}>
-          Select the Sri Lankan foods you'd like to analyze
-        </Text>
-        
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search for foods..."
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-        
-        <View style={styles.selectedContainer}>
-          <Text style={styles.selectedText}>
-            Selected: {selectedFoods.length} items
+      <ScrollView 
+        style={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.contentContainer}>
+          <Text style={styles.sectionTitle}>
+            Select the Sri Lankan foods you'd like to analyze
           </Text>
-          {selectedFoods.length > 0 && (
-            <TouchableOpacity 
-              style={styles.analyzeButton}
-              onPress={analyzeSelectedFoods}
-            >
-              <Text style={styles.analyzeButtonText}>Analyze</Text>
-            </TouchableOpacity>
+          
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search for foods..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          
+          <View style={styles.selectedContainer}>
+            <Text style={styles.selectedText}>
+              Selected: {selectedFoods.length} items
+            </Text>
+            {selectedFoods.length > 0 && (
+              <TouchableOpacity 
+                style={styles.analyzeButton}
+                onPress={analyzeSelectedFoods}
+              >
+                <Text style={styles.analyzeButtonText}>Analyze</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          
+          {/* Food List Container with fixed height when analysis is shown */}
+          <View style={[
+            styles.foodListContainer,
+            analysisResult && styles.foodListContainerCompact
+          ]}>
+            <FlatList
+              data={filteredFoods}
+              renderItem={renderFoodItem}
+              keyExtractor={(item) => item}
+              style={styles.foodList}
+              scrollEnabled={!analysisResult} // Disable FlatList scroll when analysis is shown
+              nestedScrollEnabled={false}
+            />
+          </View>
+          
+          {analysisResult && (
+            <View style={styles.analysisResultContainer}>
+              <View style={styles.resultHeader}>
+                <Text style={styles.analysisTitle}>Analysis Results</Text>
+                <View style={styles.healthScoreContainer}>
+                  <Text style={styles.healthScoreLabel}>Health Score</Text>
+                  <Text style={styles.healthScoreValue}>{analysisResult.healthScore}/100</Text>
+                </View>
+              </View>
+              
+              <View style={styles.analysisSection}>
+                <Text style={styles.analysisSectionTitle}>Nutritional Analysis</Text>
+                <Text style={styles.analysisText}>{analysisResult.nutritionalAnalysis}</Text>
+              </View>
+              
+              <View style={styles.analysisSection}>
+                <Text style={styles.analysisSectionTitle}>Health Impact</Text>
+                <Text style={styles.analysisText}>{analysisResult.healthImpact}</Text>
+              </View>
+              
+              <View style={styles.analysisSection}>
+                <Text style={styles.analysisSectionTitle}>Suggestions</Text>
+                {analysisResult.suggestions.map((suggestion, index) => (
+                  <View key={index} style={styles.suggestionItem}>
+                    <Text style={styles.bulletPoint}>•</Text>
+                    <Text style={styles.suggestionText}>{suggestion}</Text>
+                  </View>
+                ))}
+              </View>
+              
+              <View style={styles.analysisSection}>
+                <Text style={styles.analysisSectionTitle}>Healthier Alternatives</Text>
+                {analysisResult.alternatives.map((item, index) => (
+                  <View key={index} style={styles.alternativeItem}>
+                    <Text style={styles.originalFood}>{item.original}</Text>
+                    <Text style={styles.arrowIcon}>→</Text>
+                    <Text style={styles.alternativeFood}>{item.alternative}</Text>
+                  </View>
+                ))}
+              </View>
+              
+              <TouchableOpacity 
+                style={styles.addToPlanButton}
+                onPress={() => navigation.navigate('MealPlan')}
+              >
+                <Text style={styles.addToPlanButtonText}>Add to Meal Plan</Text>
+              </TouchableOpacity>
+              
+              {/* Clear Analysis Button */}
+              <TouchableOpacity 
+                style={styles.clearButton}
+                onPress={() => setAnalysisResult(null)}
+              >
+                <Text style={styles.clearButtonText}>Clear Analysis</Text>
+              </TouchableOpacity>
+            </View>
           )}
         </View>
-        
-        <FlatList
-          data={filteredFoods}
-          renderItem={renderFoodItem}
-          keyExtractor={(item) => item}
-          style={styles.foodList}
-        />
-        
-        {analysisResult && (
-          <View style={styles.analysisResultContainer}>
-            <View style={styles.resultHeader}>
-              <Text style={styles.analysisTitle}>Analysis Results</Text>
-              <View style={styles.healthScoreContainer}>
-                <Text style={styles.healthScoreLabel}>Health Score</Text>
-                <Text style={styles.healthScoreValue}>{analysisResult.healthScore}/100</Text>
-              </View>
-            </View>
-            
-            <View style={styles.analysisSection}>
-              <Text style={styles.analysisSectionTitle}>Nutritional Analysis</Text>
-              <Text style={styles.analysisText}>{analysisResult.nutritionalAnalysis}</Text>
-            </View>
-            
-            <View style={styles.analysisSection}>
-              <Text style={styles.analysisSectionTitle}>Health Impact</Text>
-              <Text style={styles.analysisText}>{analysisResult.healthImpact}</Text>
-            </View>
-            
-            <View style={styles.analysisSection}>
-              <Text style={styles.analysisSectionTitle}>Suggestions</Text>
-              {analysisResult.suggestions.map((suggestion, index) => (
-                <View key={index} style={styles.suggestionItem}>
-                  <Text style={styles.bulletPoint}>•</Text>
-                  <Text style={styles.suggestionText}>{suggestion}</Text>
-                </View>
-              ))}
-            </View>
-            
-            <View style={styles.analysisSection}>
-              <Text style={styles.analysisSectionTitle}>Healthier Alternatives</Text>
-              {analysisResult.alternatives.map((item, index) => (
-                <View key={index} style={styles.alternativeItem}>
-                  <Text style={styles.originalFood}>{item.original}</Text>
-                  <Text style={styles.arrowIcon}>→</Text>
-                  <Text style={styles.alternativeFood}>{item.alternative}</Text>
-                </View>
-              ))}
-            </View>
-            
-            <TouchableOpacity 
-              style={styles.addToPlanButton}
-              onPress={() => navigation.navigate('MealPlan')}
-            >
-              <Text style={styles.addToPlanButtonText}>Add to Meal Plan</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -214,9 +236,12 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: '#FFFFFF',
   },
-  contentContainer: {
+  scrollContainer: {
     flex: 1,
+  },
+  contentContainer: {
     padding: 20,
+    paddingBottom: 40, // Extra padding at bottom for better scroll experience
   },
   sectionTitle: {
     fontSize: 18,
@@ -254,9 +279,15 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#FFFFFF',
   },
+  foodListContainer: {
+    minHeight: 400, // Minimum height for food list
+    marginBottom: 16,
+  },
+  foodListContainerCompact: {
+    maxHeight: 200, // Compact height when analysis is shown
+  },
   foodList: {
     flex: 1,
-    marginBottom: 16,
   },
   foodItem: {
     padding: 12,
@@ -283,7 +314,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-    marginVertical: 16,
+    marginBottom: 20,
   },
   resultHeader: {
     flexDirection: 'row',
@@ -368,11 +399,25 @@ const styles = StyleSheet.create({
     padding: 14,
     alignItems: 'center',
     marginTop: 8,
+    marginBottom: 12,
   },
   addToPlanButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#FFFFFF',
+  },
+  clearButton: {
+    backgroundColor: '#F5F5F5',
+    borderRadius: 10,
+    padding: 14,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#DDDDDD',
+  },
+  clearButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#666666',
   },
 });
 

@@ -6,7 +6,7 @@ This script handles food image classification using the trained TensorFlow model
 It integrates with the Node.js backend through the ML controller.
 
 Usage:
-    python predict_food_image.py <base64_image> [food_hint]
+    python predict_food_image.py <temp_file_path> [food_hint]
 
 Author: CeylonCare Team
 """
@@ -65,6 +65,16 @@ def load_model_and_labels():
     except Exception as e:
         logger.error(f"❌ Error loading model or labels: {e}")
         return False
+
+def read_image_from_file(file_path):
+    """Read base64 image data from temp file"""
+    try:
+        with open(file_path, 'r') as f:
+            base64_data = f.read().strip()
+        return base64_data
+    except Exception as e:
+        logger.error(f"Error reading temp file: {e}")
+        raise
 
 def preprocess_image(image_data):
     """Preprocess image for model prediction"""
@@ -395,10 +405,13 @@ def main():
     """Main function for command line usage"""
     try:
         if len(sys.argv) < 2:
-            raise ValueError("Base64 image data is required")
+            raise ValueError("Temp file path is required")
         
-        image_data = sys.argv[1]
+        temp_file_path = sys.argv[1]
         food_hint = sys.argv[2] if len(sys.argv) > 2 else ""
+        
+        # Read image data from temp file
+        image_data = read_image_from_file(temp_file_path)
         
         # Make prediction
         result = predict_food_image(image_data, food_hint)

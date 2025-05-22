@@ -1,6 +1,8 @@
 const { spawn } = require('child_process');
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs').promises;  // Make sure you're using .promises
+const os = require('os');  // Add this line
+const { v4: uuidv4 } = require('uuid');  // Add this line
 
 class MLController {
   constructor() {
@@ -182,6 +184,8 @@ class MLController {
 
   // Analyze food image using the trained TensorFlow model
   async analyzeFoodImage(req, res) {
+    let tempFilePath = null;
+    
     try {
       console.log('[DEBUG] Analyzing food image with TensorFlow model...');
       
@@ -202,11 +206,28 @@ class MLController {
         base64Image = imageData.split(',')[1];
       }
 
-      // Run the food image prediction script
+      // Create a temporary file to store the base64 image data
+      const tempDir = os.tmpdir();
+      const tempFileName = `food_image_${uuidv4()}.txt`;
+      tempFilePath = path.join(tempDir, tempFileName);
+      
+      // Write base64 data to temp file
+      fs.writeFile(tempFilePath, base64Image);
+      console.log('[DEBUG] Wrote image data to temp file:', tempFilePath);
+
+      // Run the food image prediction script with temp file path
       const result = await this.runPythonScript(this.foodImageScript, [
-        base64Image,
+        tempFilePath,
         foodHint
       ]);
+
+      // Clean up temp file
+      try {
+        await fs.unlink(tempFilePath);
+        console.log('[DEBUG] Cleaned up temp file');
+      } catch (cleanupError) {
+        console.error('[WARNING] Failed to clean up temp file:', cleanupError);
+      }
 
       if (result.success) {
         console.log('[DEBUG] Food image analysis successful:', result.data.analysis.identifiedFood);
@@ -223,6 +244,16 @@ class MLController {
       }
     } catch (error) {
       console.error('[ERROR] Food image analysis error:', error.message);
+      
+      // Clean up temp file in case of error
+      if (tempFilePath) {
+        try {
+          fs.unlink(tempFilePath);
+        } catch (cleanupError) {
+          console.error('[WARNING] Failed to clean up temp file:', cleanupError);
+        }
+      }
+      
       res.status(500).json({
         success: false,
         error: 'Internal server error during image analysis'
