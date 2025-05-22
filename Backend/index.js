@@ -18,7 +18,7 @@ const {
 } = require("./controllers/healthController");
 const { getARRecommendations, getTherapyDetails, processFrame, getTherapyPoseLandmarks } = require("./controllers/arController");
 //const { getChatRecommendation } = require("./controllers/chatController");
-const fileUpload = require("express-fileupload");
+//const fileUpload = require("express-fileupload");
 
 const app = express();
 
