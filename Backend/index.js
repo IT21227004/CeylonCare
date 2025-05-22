@@ -16,8 +16,9 @@ const {
   updateHealthData,
   deleteHealthData,
 } = require("./controllers/healthController");
-const { getChatRecommendation } = require("./controllers/chatController");
 const { getARRecommendations, getTherapyDetails, processFrame, getTherapyPoseLandmarks } = require("./controllers/arController");
+//const { getChatRecommendation } = require("./controllers/chatController");
+//const fileUpload = require("express-fileupload");
 
 const app = express();
 
@@ -49,7 +50,7 @@ app.post("/process_frame", express.json({ limit: "2mb" }), processFrame);
 app.get("/therapy_landmarks/:therapyName", getTherapyPoseLandmarks);
 
 // Chatbot Routes
-app.post('/healthChat/:userId', getChatRecommendation);
+//app.post('/healthChat/:userId', getChatRecommendation);
 
 const PORT = 5000;
 app.listen(PORT, () => {
