@@ -6,8 +6,9 @@ class MLController {
   constructor() {
     this.pythonPath = 'python'; // or 'python3' depending on your system
     this.mlScriptPath = path.join(__dirname, '../ml_python');
-    this.setupScript  = path.join(this.mlScriptPath, 'train_ml.py');
+    this.setupScript = path.join(this.mlScriptPath, 'train_ml.py');
     this.predictScript = path.join(this.mlScriptPath, 'predict.py');
+    this.foodImageScript = path.join(this.mlScriptPath, 'predict_food_image.py');
   }
 
   // Initialize and train ML models
@@ -179,34 +180,52 @@ class MLController {
     }
   }
 
-  // Analyze food image
+  // Analyze food image using the trained TensorFlow model
   async analyzeFoodImage(req, res) {
     try {
-      console.log('[DEBUG] Analyzing food image...');
+      console.log('[DEBUG] Analyzing food image with TensorFlow model...');
       
-      const { foodHint } = req.body;
+      const { imageData, foodHint = '' } = req.body;
 
-      const result = await this.runPythonScript(this.predictScript, [
-        'analyze_image',
-        foodHint || ''
+      // Validate image data
+      if (!imageData) {
+        return res.status(400).json({
+          success: false,
+          error: 'Image data is required'
+        });
+      }
+
+      // Check if image data is base64 encoded
+      let base64Image = imageData;
+      if (imageData.startsWith('data:image')) {
+        // Extract base64 part from data URL
+        base64Image = imageData.split(',')[1];
+      }
+
+      // Run the food image prediction script
+      const result = await this.runPythonScript(this.foodImageScript, [
+        base64Image,
+        foodHint
       ]);
 
       if (result.success) {
+        console.log('[DEBUG] Food image analysis successful:', result.data.analysis.identifiedFood);
         res.status(200).json({
           success: true,
           analysis: result.data.analysis
         });
       } else {
+        console.error('[ERROR] Food image analysis failed:', result.error);
         res.status(500).json({
           success: false,
-          error: result.error
+          error: result.error || 'Failed to analyze food image'
         });
       }
     } catch (error) {
-      console.error('[ERROR] Image analysis error:', error.message);
+      console.error('[ERROR] Food image analysis error:', error.message);
       res.status(500).json({
         success: false,
-        error: 'Failed to analyze food image'
+        error: 'Internal server error during image analysis'
       });
     }
   }
@@ -216,19 +235,29 @@ class MLController {
     try {
       console.log('[DEBUG] Getting ML model info...');
 
+      // Check for food classification model
+      const imageModelPath = path.join(__dirname, '../image_model/models/food_classifier_final.h5');
+      const imageLabelsPath = path.join(__dirname, '../image_model/models/food_labels.json');
+      const imageModelExists = fs.existsSync(imageModelPath);
+      const imageLabelsExist = fs.existsSync(imageLabelsPath);
+
+      // Get recommendation model info
       const result = await this.runPythonScript(this.predictScript, ['model_info']);
 
-      if (result.success) {
-        res.status(200).json({
-          success: true,
-          model_info: result.data.model_info
-        });
-      } else {
-        res.status(500).json({
-          success: false,
-          error: result.error
-        });
-      }
+      const modelInfo = {
+        recommendation_models: result.success ? result.data.model_info : { status: 'Not available' },
+        food_classification_model: {
+          status: imageModelExists ? 'Available' : 'Not trained',
+          model_path: imageModelPath,
+          labels_available: imageLabelsExist,
+          model_type: 'TensorFlow/Keras - MobileNetV2 Transfer Learning'
+        }
+      };
+
+      res.status(200).json({
+        success: true,
+        model_info: modelInfo
+      });
     } catch (error) {
       console.error('[ERROR] Model info error:', error.message);
       res.status(500).json({
@@ -241,6 +270,8 @@ class MLController {
   // Helper method to run Python scripts
   runPythonScript(scriptPath, args = []) {
     return new Promise((resolve, reject) => {
+      console.log(`[DEBUG] Running Python script: ${scriptPath} with args:`, args);
+      
       const python = spawn(this.pythonPath, [scriptPath, ...args], {
         cwd: this.mlScriptPath
       });
@@ -272,7 +303,8 @@ class MLController {
             });
           }
         } else {
-          console.error('[ERROR] Python script failed:', stderr);
+          console.error('[ERROR] Python script failed with code:', code);
+          console.error('[ERROR] Error output:', stderr);
           resolve({
             success: false,
             error: stderr || `Python script exited with code ${code}`
@@ -291,20 +323,33 @@ class MLController {
   async healthCheck(req, res) {
     try {
       const modelsDir = path.join(this.mlScriptPath, 'ml_models');
-      const dataDir   = path.join(this.mlScriptPath, 'ml_data');
+      const dataDir = path.join(this.mlScriptPath, 'ml_data');
+      const imageModelDir = path.join(__dirname, '../image_model/models');
 
-      // Check for the three files we actually create:
-      const contentModelExists    = fs.existsSync(path.join(modelsDir, 'content_based_model.h5'));
+      // Check recommendation models
+      const contentModelExists = fs.existsSync(path.join(modelsDir, 'content_based_model.h5'));
       const clusteringModelExists = fs.existsSync(path.join(modelsDir, 'kmeans.pkl'));
-      const healthClfExists       = fs.existsSync(path.join(modelsDir, 'rf_health.pkl'));
+      const healthClfExists = fs.existsSync(path.join(modelsDir, 'rf_health.pkl'));
+
+      // Check food classification model
+      const foodModelExists = fs.existsSync(path.join(imageModelDir, 'food_classifier_final.h5'));
+      const foodLabelsExist = fs.existsSync(path.join(imageModelDir, 'food_labels.json'));
 
       res.status(200).json({
         success: true,
         status: 'healthy',
         ml_system: {
           directories_exist: fs.existsSync(modelsDir) && fs.existsSync(dataDir),
-          models_trained:    contentModelExists && clusteringModelExists && healthClfExists,
-          python_available:  true
+          recommendation_models_trained: contentModelExists && clusteringModelExists && healthClfExists,
+          food_classification_model_trained: foodModelExists && foodLabelsExist,
+          python_available: true,
+          models: {
+            content_based: contentModelExists,
+            clustering: clusteringModelExists,
+            health_classifier: healthClfExists,
+            food_image_classifier: foodModelExists,
+            food_labels: foodLabelsExist
+          }
         }
       });
     } catch (error) {

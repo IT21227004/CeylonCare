@@ -3,8 +3,7 @@
     "name": "CeylonCare",
     "slug": "CeylonCare",
     "version": "1.0.0",
-    "assetBundlePatterns": [
-      "**/*"],
+    "assetBundlePatterns": ["**/*"],
     "assets": [
       "./assets/ar_poses/Downward_Dog.glb"
     ],
@@ -39,6 +38,7 @@
       "favicon": ""
     },
     "plugins": [
+      "expo-updates",
       [
         "expo-splash-screen",
         {
@@ -71,7 +71,13 @@
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/603ec50c-177a-4857-a46f-dca88837e71b"
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 30000,
+      "url": "https://u.expo.dev/603ec50c-177a-4857-a46f-dca88837e71b",
+      "requestHeaders": {
+        "expo-channel-name": "default"
+      }
     }
   }
 }

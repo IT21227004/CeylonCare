@@ -11,8 +11,8 @@ import {
   ScrollView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as ImagePicker from 'expo-image-picker';
 import BottomNavBar from '../../BottomNavBar';
-import foodImageAnalysisModel from '../../../models/foodImageAnalysisModel';
 
 const FoodScanner = ({ navigation }) => {
   const [capturedImage, setCapturedImage] = useState(null);
@@ -20,39 +20,126 @@ const FoodScanner = ({ navigation }) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showResults, setShowResults] = useState(false);
   
-  // Mock function to simulate image capture (in real app, you'd use expo-camera)
-  const captureImage = () => {
-    try {
-      // Simulate capturing an image
-      const mockImagePath = require('../../../assets/images/food-sample.png');
-      setCapturedImage(mockImagePath);
-      setAnalysisResult(null);
-      setShowResults(false);
-      
+  // Request camera permissions
+  const requestPermissions = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
       Alert.alert(
-        'Image Captured!',
-        'Would you like to analyze this food?',
-        [
-          { text: 'Retake', onPress: () => setCapturedImage(null) },
-          { text: 'Analyze', onPress: analyzeImage }
-        ]
+        'Permission Required',
+        'Sorry, we need camera permissions to take photos!',
+        [{ text: 'OK' }]
       );
+      return false;
+    }
+    return true;
+  };
+
+  // Capture image from camera
+  const captureImage = async () => {
+    try {
+      const hasPermission = await requestPermissions();
+      if (!hasPermission) return;
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+        base64: true,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const imageUri = result.assets[0].uri;
+        const base64Image = result.assets[0].base64;
+        
+        setCapturedImage({ uri: imageUri, base64: base64Image });
+        setAnalysisResult(null);
+        setShowResults(false);
+        
+        Alert.alert(
+          'Image Captured!',
+          'Would you like to analyze this food?',
+          [
+            { text: 'Retake', onPress: () => setCapturedImage(null) },
+            { text: 'Analyze', onPress: analyzeImage }
+          ]
+        );
+      }
     } catch (error) {
       console.error('Error capturing image:', error);
       Alert.alert('Error', 'Failed to capture image. Please try again.');
     }
   };
+
+  // Pick image from gallery
+  const pickImage = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+        base64: true,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const imageUri = result.assets[0].uri;
+        const base64Image = result.assets[0].base64;
+        
+        setCapturedImage({ uri: imageUri, base64: base64Image });
+        setAnalysisResult(null);
+        setShowResults(false);
+        
+        Alert.alert(
+          'Image Selected!',
+          'Would you like to analyze this food?',
+          [
+            { text: 'Pick Another', onPress: () => setCapturedImage(null) },
+            { text: 'Analyze', onPress: analyzeImage }
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'Failed to select image. Please try again.');
+    }
+  };
   
   // Function to analyze the captured image
   const analyzeImage = async () => {
-    // capturedImage is your URI (we ignore it in the API call)
+    if (!capturedImage || !capturedImage.base64) {
+      Alert.alert('Error', 'No image available for analysis');
+      return;
+    }
+
     setIsAnalyzing(true);
     try {
-      const analysis = await foodImageAnalysisModel.analyzeImage(capturedImage, /* optional hint */ '');
-      setAnalysisResult(analysis);
-      setShowResults(true);
-    } catch (err) {
-      Alert.alert('Analysis Error', 'Failed to analyze the food image.');
+      // Replace with your actual backend URL
+      const response = await fetch('http://localhost:3000/api/ml/analyze-food-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          imageData: capturedImage.base64,
+          foodHint: '' // Optional hint about the food
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success && result.analysis) {
+        setAnalysisResult(result.analysis);
+        setShowResults(true);
+      } else {
+        throw new Error(result.error || 'Analysis failed');
+      }
+    } catch (error) {
+      console.error('Analysis error:', error);
+      Alert.alert(
+        'Analysis Error', 
+        'Failed to analyze the food image. Please check your internet connection and try again.'
+      );
     } finally {
       setIsAnalyzing(false);
     }
@@ -106,27 +193,36 @@ const FoodScanner = ({ navigation }) => {
                 Get instant analysis of nutritional content and personalized health recommendations
               </Text>
               
-              <TouchableOpacity
-                style={styles.captureButton}
-                onPress={captureImage}
-              >
-                <LinearGradient
-                  colors={['#33E4DB', '#00BBD3']}
-                  style={styles.captureGradient}
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                  style={styles.captureButton}
+                  onPress={captureImage}
                 >
-                  <Text style={styles.captureButtonText}>📸 Capture Food Image</Text>
-                </LinearGradient>
-              </TouchableOpacity>
+                  <LinearGradient
+                    colors={['#33E4DB', '#00BBD3']}
+                    style={styles.captureGradient}
+                  >
+                    <Text style={styles.captureButtonText}>📸 Take Photo</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                  style={styles.galleryButton}
+                  onPress={pickImage}
+                >
+                  <Text style={styles.galleryButtonText}>📁 Choose from Gallery</Text>
+                </TouchableOpacity>
+              </View>
               
               <View style={styles.featuresContainer}>
                 <Text style={styles.featuresTitle}>What you'll get:</Text>
                 <View style={styles.featureItem}>
                   <Text style={styles.featureIcon}>🔍</Text>
-                  <Text style={styles.featureText}>Food identification</Text>
+                  <Text style={styles.featureText}>AI food identification</Text>
                 </View>
                 <View style={styles.featureItem}>
                   <Text style={styles.featureIcon}>📊</Text>
-                  <Text style={styles.featureText}>Nutritional analysis</Text>
+                  <Text style={styles.featureText}>Detailed nutritional analysis</Text>
                 </View>
                 <View style={styles.featureItem}>
                   <Text style={styles.featureIcon}>❤️</Text>
@@ -134,7 +230,7 @@ const FoodScanner = ({ navigation }) => {
                 </View>
                 <View style={styles.featureItem}>
                   <Text style={styles.featureIcon}>💡</Text>
-                  <Text style={styles.featureText}>Health suggestions</Text>
+                  <Text style={styles.featureText}>Health improvement suggestions</Text>
                 </View>
               </View>
             </View>
@@ -143,7 +239,7 @@ const FoodScanner = ({ navigation }) => {
           // Image analysis view
           <View style={styles.analysisContainer}>
             <View style={styles.imageContainer}>
-              <Image source={capturedImage} style={styles.capturedImage} />
+              <Image source={{ uri: capturedImage.uri }} style={styles.capturedImage} />
               <TouchableOpacity
                 style={styles.retakeButton}
                 onPress={resetScanner}
@@ -186,6 +282,18 @@ const FoodScanner = ({ navigation }) => {
                   <Text style={styles.confidenceText}>
                     Confidence: {Math.round(analysisResult.confidence * 100)}%
                   </Text>
+                  
+                  {/* Top Predictions */}
+                  {analysisResult.topPredictions && (
+                    <View style={styles.topPredictionsContainer}>
+                      <Text style={styles.topPredictionsTitle}>Other possibilities:</Text>
+                      {analysisResult.topPredictions.slice(1, 3).map((pred, index) => (
+                        <Text key={index} style={styles.topPredictionItem}>
+                          • {pred.food} ({Math.round(pred.confidence * 100)}%)
+                        </Text>
+                      ))}
+                    </View>
+                  )}
                 </View>
                 
                 {/* Health Score */}
@@ -245,7 +353,7 @@ const FoodScanner = ({ navigation }) => {
                 {/* Suggestions */}
                 {analysisResult.suggestions && analysisResult.suggestions.length > 0 && (
                   <View style={styles.resultSection}>
-                    <Text style={styles.sectionTitle}>Suggestions</Text>
+                    <Text style={styles.sectionTitle}>Health Suggestions</Text>
                     {analysisResult.suggestions.map((suggestion, index) => (
                       <View key={index} style={styles.suggestionItem}>
                         <Text style={styles.suggestionIcon}>💡</Text>
@@ -369,8 +477,12 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     fontFamily: 'League Spartan',
   },
-  captureButton: {
+  buttonContainer: {
+    width: '100%',
     marginBottom: 24,
+  },
+  captureButton: {
+    marginBottom: 12,
   },
   captureGradient: {
     paddingVertical: 16,
@@ -382,6 +494,21 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: 'white',
+    fontFamily: 'League Spartan',
+  },
+  galleryButton: {
+    backgroundColor: '#F5F5F5',
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  galleryButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#555555',
     fontFamily: 'League Spartan',
   },
   featuresContainer: {
@@ -499,6 +626,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#00BBD3',
     fontWeight: '600',
+    fontFamily: 'League Spartan',
+    marginBottom: 12,
+  },
+  topPredictionsContainer: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+  },
+  topPredictionsTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666666',
+    marginBottom: 8,
+    fontFamily: 'League Spartan',
+  },
+  topPredictionItem: {
+    fontSize: 13,
+    color: '#888888',
+    marginBottom: 4,
     fontFamily: 'League Spartan',
   },
   healthScoreSection: {
