@@ -17,8 +17,11 @@
       "supportsTablet": true,
       "infoPlist": {
         "NSCameraUsageDescription": "This app uses the camera for real-time pose detection to guide your yoga practice.",
-        "NSMicrophoneUsageDescription": "We need microphone access to record your voice for the chatbot."
-      }
+        "NSMicrophoneUsageDescription": "We need microphone access to record your voice for the chatbot.",
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSSpeechRecognitionUsageDescription": "Allow speech recognition for text-to-speech"
+      },
+      "bundleIdentifier": "com.amfdo.CeylonCare"
     },
     "android": {
       "adaptiveIcon": {

@@ -8,6 +8,7 @@ const {
   updateUserProfile,
   logoutUser,
 } = require("./controllers/userController");
+const fileUpload = require("express-fileupload");
 const upload = require("./middleware/uploadMiddleware");
 const path = require("path");
 const {
@@ -16,8 +17,9 @@ const {
   deleteHealthData,
   getHealthDataForRecommendations
 } = require("./controllers/healthController");
-const { getChatRecommendation } = require("./controllers/chatController");
 const { getARRecommendations, getTherapyDetails, processFrame, getTherapyPoseLandmarks } = require("./controllers/arController");
+//const { getChatRecommendation } = require("./controllers/chatController");
+//const fileUpload = require("express-fileupload");
 const mlController = require('./controllers/mlController');
 
 const app = express();
@@ -28,7 +30,7 @@ app.use(cors({ origin: "*" }));
 // Increase body size limit for all routes (or apply to specific routes)
 app.use(express.json({ limit: "2mb" })); // Set to 2MB for all requests
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-//app.use(fileUpload());
+app.use(fileUpload());
 
 // User Routes
 app.post("/register", registerUser);
@@ -63,7 +65,7 @@ app.post("/process_frame", express.json({ limit: "2mb" }), processFrame);
 app.get("/therapy_landmarks/:therapyName", getTherapyPoseLandmarks);
 
 // Chatbot Routes
-app.post('/healthChat/:userId', getChatRecommendation);
+//app.post('/healthChat/:userId', getChatRecommendation);
 
 const PORT = 5000;
 app.listen(PORT, () => {

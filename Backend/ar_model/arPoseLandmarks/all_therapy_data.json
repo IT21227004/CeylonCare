@@ -1,0 +1,272 @@
+{
+  "Downward_Dog": {
+    "name": "Downward Dog",
+    "description": "A foundational yoga pose that stretches the entire body, promoting relaxation and reducing stress.",
+    "ar_pose": "https://res.cloudinary.com/dmwaockgw/image/upload/v1741786736/Downward_Dog_jp5ixq.glb",
+    "reference_video": "https://res.cloudinary.com/dmwaockgw/video/upload/v1741786530/downward_dog_jxjkjz.mp4",
+    "steps": [
+      "Step 1: Start on your hands and knees, with wrists under shoulders and knees under hips.",
+      "Step 2: Lift your hips up and back, straightening your legs as much as comfortable.",
+      "Step 3: Spread your fingers wide and press evenly through your palms, forming an inverted 'V' shape."
+    ],
+    "benefits": [
+      "Relieves tension in the back and shoulders",
+      "Improves circulation, aiding blood pressure regulation",
+      "Calms the mind, reducing stress and anxiety"
+    ],
+    "landmarks": [
+      {
+        "name": "left_shoulder",
+        "x": 0.4357510209083557,
+        "y": 0.6260603666305542,
+        "z": 0.16364437341690063
+      },
+      {
+        "name": "right_shoulder",
+        "x": 0.44313323497772217,
+        "y": 0.6445327401161194,
+        "z": -0.2500351071357727
+      },
+      {
+        "name": "left_elbow",
+        "x": 0.3546375632286072,
+        "y": 0.7673691511154175,
+        "z": 0.29628702998161316
+      },
+      {
+        "name": "right_elbow",
+        "x": 0.36065638065338135,
+        "y": 0.7971516251564026,
+        "z": -0.4590984284877777
+      },
+      {
+        "name": "left_wrist",
+        "x": 0.24689030647277832,
+        "y": 0.826626181602478,
+        "z": 0.051840320229530334
+      },
+      {
+        "name": "right_wrist",
+        "x": 0.23914706707000732,
+        "y": 0.858950138092041,
+        "z": -0.3894881308078766
+      },
+      {
+        "name": "left_hip",
+        "x": 0.5775143504142761,
+        "y": 0.31043708324432373,
+        "z": 0.17900237441062927
+      },
+      {
+        "name": "right_hip",
+        "x": 0.5921882390975952,
+        "y": 0.2992461621761322,
+        "z": -0.17861008644104004
+      },
+      {
+        "name": "left_knee",
+        "x": 0.6913647055625916,
+        "y": 0.558106541633606,
+        "z": 0.24281299114227295
+      },
+      {
+        "name": "right_knee",
+        "x": 0.7115020751953125,
+        "y": 0.5586376190185547,
+        "z": -0.09684055298566818
+      },
+      {
+        "name": "left_ankle",
+        "x": 0.7959119230508804,
+        "y": 0.7810890078544617,
+        "z": 0.3609306514263153
+      },
+      {
+        "name": "right_ankle",
+        "x": 0.8197981715202332,
+        "y": 0.8001071214675903,
+        "z": -0.027696233242750168
+      }
+    ]
+  },
+  "Triangle_Pose": {
+    "name": "Triangle Pose",
+    "description": "A lateral stretch that opens the chest and enhances flexibility, fostering a sense of calm.",
+    "ar_pose": "https://res.cloudinary.com/dmwaockgw/image/upload/v1741787681/Triangle_Pose_sfoj9p.glb",
+    "reference_video": "https://res.cloudinary.com/dmwaockgw/video/upload/v1741799464/triangle_pose_sq7moo.mp4",
+    "steps": [
+      "Step 1: Stand with your feet about 3-4 feet apart, turning your right foot out 90 degrees and left foot slightly in.",
+      "Step 2: Extend your arms out to the sides at shoulder height.",
+      "Step 3: Reach your right hand down toward your right shin or the floor, lifting your left arm up, gazing toward your left hand."
+    ],
+    "benefits": [
+      "Stretches the sides of the body, reducing physical stress",
+      "Enhances breathing capacity, supporting blood pressure control",
+      "Promotes mental clarity and emotional balance"
+    ],
+    "landmarks": [
+      {
+        "name": "left_shoulder",
+        "x": 0.5872240662574768,
+        "y": 0.436151921749115,
+        "z": -0.11709035933017731
+      },
+      {
+        "name": "right_shoulder",
+        "x": 0.5943049788475037,
+        "y": 0.588205873966217,
+        "z": -0.10128292441368103
+      },
+      {
+        "name": "left_elbow",
+        "x": 0.5744402408599854,
+        "y": 0.30312156677246094,
+        "z": -0.20380577445030212
+      },
+      {
+        "name": "right_elbow",
+        "x": 0.6076785922050476,
+        "y": 0.7156527042388916,
+        "z": -0.16438941657543182
+      },
+      {
+        "name": "left_wrist",
+        "x": 0.5721986889839172,
+        "y": 0.19193673133850098,
+        "z": -0.32189229130744934
+      },
+      {
+        "name": "right_wrist",
+        "x": 0.6232516169548035,
+        "y": 0.8357647657394409,
+        "z": -0.28607675433158875
+      },
+      {
+        "name": "left_hip",
+        "x": 0.42243021726608276,
+        "y": 0.5376892685890198,
+        "z": -0.057311542332172394
+      },
+      {
+        "name": "right_hip",
+        "x": 0.4497601389884949,
+        "y": 0.5754995346069336,
+        "z": 0.057341039180755615
+      },
+      {
+        "name": "left_knee",
+        "x": 0.3524506092071533,
+        "y": 0.7099629640579224,
+        "z": -0.07039283215999603
+      },
+      {
+        "name": "right_knee",
+        "x": 0.5335946083068848,
+        "y": 0.7294980883598328,
+        "z": 0.09659691154956818
+      },
+      {
+        "name": "left_ankle",
+        "x": 0.31282269954681396,
+        "y": 0.859876811504364,
+        "z": 0.09223658591508865
+      },
+      {
+        "name": "right_ankle",
+        "x": 0.6304420530796051,
+        "y": 0.8718294501304626,
+        "z": 0.21766814589500427
+      }
+    ]
+  },
+  "Warrior_II": {
+    "name": "Warrior II",
+    "description": "A powerful standing pose that strengthens the legs and improves focus, helping to alleviate stress and enhance resilience.",
+    "ar_pose": "https://res.cloudinary.com/dmwaockgw/image/upload/v1741590782/warrior_II_lp2hfq.glb",
+    "reference_video": "https://res.cloudinary.com/dmwaockgw/video/upload/v1741550773/warrior_ii_iowwqf.mp4",
+    "steps": [
+      "Step 1: Stand with your feet wide apart, about 3-4 feet, depending on comfort.",
+      "Step 2: Turn your right foot out 90 degrees and your left foot slightly in, aligning your heels.",
+      "Step 3: Bend your right knee to a 90-degree angle, keeping it over your ankle, and extend your arms parallel to the ground, gazing over your right hand."
+    ],
+    "benefits": [
+      "Strengthens the legs and core, supporting physical stability",
+      "Improves circulation, aiding in blood pressure management",
+      "Enhances mental focus and reduces stress, beneficial for diabetes control"
+    ],
+    "landmarks": [
+      {
+        "name": "left_shoulder",
+        "x": 0.4578673839569092,
+        "y": 0.35310202836990356,
+        "z": 0.0011138073168694973
+      },
+      {
+        "name": "right_shoulder",
+        "x": 0.5520699322223663,
+        "y": 0.358278751373291,
+        "z": -0.16361160576343536
+      },
+      {
+        "name": "left_elbow",
+        "x": 0.3769342303276062,
+        "y": 0.33311212062835693,
+        "z": 0.0024548228830099106
+      },
+      {
+        "name": "right_elbow",
+        "x": 0.6405177116394043,
+        "y": 0.3519459068775177,
+        "z": -0.1913599669933319
+      },
+      {
+        "name": "left_wrist",
+        "x": 0.2997785806655884,
+        "y": 0.3122492730617523,
+        "z": -0.10068442672491074
+      },
+      {
+        "name": "right_wrist",
+        "x": 0.7146257162094116,
+        "y": 0.3506085276603699,
+        "z": -0.20637039840221405
+      },
+      {
+        "name": "left_hip",
+        "x": 0.47143155336380005,
+        "y": 0.6368911266326904,
+        "z": 0.03650015965104103
+      },
+      {
+        "name": "right_hip",
+        "x": 0.5369981825351715,
+        "y": 0.6458571553230286,
+        "z": -0.03635856881737709
+      },
+      {
+        "name": "left_knee",
+        "x": 0.35410571098327637,
+        "y": 0.6745378971099854,
+        "z": -0.13496829569339752
+      },
+      {
+        "name": "right_knee",
+        "x": 0.6225140690803528,
+        "y": 0.776663064956665,
+        "z": -0.06588724255561829
+      },
+      {
+        "name": "left_ankle",
+        "x": 0.34107327461242676,
+        "y": 0.8877703547477722,
+        "z": -0.03507186099886894
+      },
+      {
+        "name": "right_ankle",
+        "x": 0.7102606892585754,
+        "y": 0.8891258239746094,
+        "z": 0.06803987920284271
+      }
+    ]
+  }
+}
