@@ -27,9 +27,9 @@ const buttonData = [
   {
     id: "2",
     title: "Meal Plan",
-    description: "#####",
+    description: "Sri Lankan healthy food recommendations for your well-being",
     icon: require("../../assets/images/food_home 1.png"),
-    navigateTo: "Splash",
+    navigateTo: "HealthyFoodMain", // CHANGE THIS LINE
   },
   {
     id: "3",
@@ -64,7 +64,8 @@ const Home = ({ navigation }: any) => {
       const userId = await AsyncStorage.getItem("userId");
       if (!userId) throw new Error("User ID not found");
 
-      const response = await fetch(`http://192.168.8.134:5000/user/${userId}`);
+      const response = await fetch(`http://192.168.1.108:5000/user/${userId}`);
+
       if (!response.ok) throw new Error("Failed to fetch user profile");
 
       const data = await response.json();

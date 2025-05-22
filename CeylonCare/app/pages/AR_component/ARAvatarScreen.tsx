@@ -1,1107 +1,800 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Platform,
-  TouchableOpacity,
-  ActivityIndicator,
-} from 'react-native';
-import * as Camera from 'expo-camera';
-import { useCameraPermissions } from 'expo-camera';
-import WebView from 'react-native-webview';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Modal } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ScreenOrientation from 'expo-screen-orientation';
+import { Canvas, useFrame } from '@react-three/fiber/native';
+import { useGLTF, useAnimations } from '@react-three/drei';
+import { Mesh, Box3, Vector3 } from 'three';
+import * as THREE from 'three';
+import { Ionicons } from '@expo/vector-icons';
+import Svg, { Line, Circle } from 'react-native-svg';
+import allTherapyData from '../../../assets/ar_poses/all_therapy_data.json';
+import axios from 'axios';
 
-const ARAvatarScreen = ({ route, navigation }) => {
-  const { arPoseUrl, therapyName } = route.params || {};
-  console.log('[DEBUG] Route params received:', JSON.stringify(route.params, null, 2));
+const Avatar: React.FC<{ isAnimating: boolean; url: string | null }> = ({ isAnimating, url }) => {
+  const gltf = useGLTF(url || '');
+  const meshRef = useRef<Mesh>(null!);
+  const { actions, mixer } = useAnimations(gltf.animations, gltf.scene);
+  const [avatarScale, setAvatarScale] = useState(2);
+  const [avatarPosition, setAvatarPosition] = useState([0, -1.5, -2]);
 
-  // State variables
-  const [permission, requestPermission] = useCameraPermissions();
-  const [isCameraReady, setIsCameraReady] = useState(false);
-  const [isWebViewValid, setIsWebViewValid] = useState(false);
-  const [cameraError, setCameraError] = useState(null);
-  const [webViewError, setWebViewError] = useState(null);
-  const [isModelLoaded, setIsModelLoaded] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [isWebViewBridgeReady, setIsWebViewBridgeReady] = useState(false); // Track bridge readiness
-  const webViewRef = useRef(null);
-
-  // Lock to landscape on mount, unlock on unmount
   useEffect(() => {
-    console.log('[DEBUG] Component mounted');
-    const lockOrientation = async () => {
-      try {
-        console.log('[DEBUG] Locking screen to landscape');
-        const currentOrientation = await ScreenOrientation.getOrientationAsync();
-        console.log('[DEBUG] Current orientation:', currentOrientation);
-        await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
-        console.log('[INFO] Screen locked to landscape');
-      } catch (error) {
-        console.error('[ERROR] Failed to lock orientation:', error.message);
-      }
-    };
-
-    const unlockOrientation = async () => {
-      try {
-        console.log('[DEBUG] Unlocking screen orientation');
-        await ScreenOrientation.unlockAsync();
-        console.log('[INFO] Screen orientation unlocked');
-      } catch (error) {
-        console.error('[ERROR] Failed to unlock orientation:', error.message);
-      }
-    };
-
-    lockOrientation();
-    return () => {
-      console.log('[DEBUG] Component unmounting');
-      unlockOrientation();
-    };
-  }, []);
-
-  // Validate components
-  useEffect(() => {
-    console.log('[DEBUG] Validating components');
-    if (!Camera.CameraView) {
-      console.error('[ERROR] CameraView unavailable');
-      setCameraError('Camera component unavailable');
-    }
-    if (!WebView) {
-      console.error('[ERROR] WebView unavailable');
-      setIsWebViewValid(false);
+    if (gltf.scene) {
+      console.log('[DEBUG] GLTF scene loaded:', gltf.scene);
+      // No overriding of materials, retain original colors/textures
     } else {
-      console.log('[INFO] WebView component validated');
-      setIsWebViewValid(true);
+      console.error('[ERROR] GLTF scene is null or undefined for URL:', url);
     }
-    if (!navigation?.navigate) {
-      console.error('[ERROR] Navigation prop invalid');
-    }
-  }, [navigation]);
+  }, [gltf]);
 
-  // Validate arPoseUrl
   useEffect(() => {
-    console.log('[DEBUG] Validating arPoseUrl:', arPoseUrl);
-    if (!arPoseUrl) {
-      console.warn('[WARN] arPoseUrl missing');
-      setWebViewError('arPoseUrl is missing');
-    } else {
-      try {
-        new URL(arPoseUrl);
-        console.log('[INFO] arPoseUrl valid');
-      } catch (error) {
-        console.error('[ERROR] Invalid arPoseUrl:', error.message);
-        setWebViewError('Invalid arPoseUrl');
-      }
-    }
-  }, [arPoseUrl]);
+    if (isAnimating && mixer && actions && gltf.scene) {
+      const action = actions['WarriorII'] || actions[Object.keys(actions)[0]];
+      if (action) {
+        console.log('[DEBUG] Starting animation');
+        action.reset().play();
 
-  // Handle camera permission
-  useEffect(() => {
-    if (!permission) {
-      console.log('[DEBUG] Permission not initialized');
-      return;
-    }
-    if (permission.status !== 'granted') {
-      console.log('[DEBUG] Requesting camera permission');
-      requestPermission();
-    } else {
-      console.log('[INFO] Camera permission granted');
-    }
-  }, [permission, requestPermission]);
+        const boundingBox = new Box3().setFromObject(gltf.scene);
+        const size = new Vector3();
+        boundingBox.getSize(size);
+        const center = new Vector3();
+        boundingBox.getCenter(center);
 
-  // Toggle animation with fallback
-  const toggleAnimation = () => {
-    if (!isModelLoaded) {
-      console.log('[DEBUG] Animation toggle ignored: model not loaded');
-      return;
-    }
-    setIsAnimating((prev) => {
-      const newState = !prev;
-      console.log('[DEBUG] Toggling animation to:', newState);
-      if (isWebViewBridgeReady && webViewRef.current) {
-        const message = newState ? 'start' : 'stop';
-        console.log('[DEBUG] Attempting to send message to WebView:', message);
-        try {
-          webViewRef.current.postMessage(message);
-          console.log('[INFO] Message sent successfully');
-        } catch (error) {
-          console.error('[ERROR] Failed to send message:', error.message);
-        }
+        const windowWidth = 250;
+        const windowHeight = 300;
+        const modelWidth = Math.max(size.x, 0.1);
+        const modelHeight = Math.max(size.y, 0.1);
+        const scaleX = (windowWidth * 0.9) / modelWidth;
+        const scaleY = (windowHeight * 0.9) / modelHeight;
+        const newScale = Math.max(Math.min(scaleX, scaleY, 1), 2);
+
+        const newPosition = [
+          -center.x * newScale,
+          -center.y * newScale - 1,
+          -2,
+        ];
+
+        console.log('[DEBUG] Auto-adjusted scale:', newScale, 'position:', newPosition);
+        setAvatarScale(newScale);
+        setAvatarPosition(newPosition);
       } else {
-        console.warn('[WARN] WebView bridge not ready or ref missing, animation state updated locally');
+        console.warn('[WARN] No valid animation action found');
       }
-      return newState;
-    });
-  };
-
-  // Updated: End session now navigates back instead of to TherapyDetails
-  const handleEndSession = async () => {
-    console.log('[DEBUG] Ending session');
-    try {
-      if (webViewRef.current && isWebViewBridgeReady) {
-        console.log('[DEBUG] Sending stop message before navigation');
-        webViewRef.current.postMessage('stop'); // Stop animation in WebView
-      }
-      console.log('[DEBUG] Locking to portrait');
-      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP); // Lock to portrait before leaving
-      console.log('[INFO] Navigating back to previous screen');
-      navigation.goBack(); // Updated: Navigate back instead of to 'TherapyDetails'
-    } catch (error) {
-      console.error('[ERROR] Failed to end session:', error.message);
+    } else if (!isAnimating && mixer) {
+      console.log('[DEBUG] Stopping animation');
+      mixer.stopAllAction();
+      setAvatarScale(2);
+      setAvatarPosition([0, -1.5, -2]);
     }
-  };
+  }, [isAnimating, actions, mixer, gltf.scene]);
 
-  // Permission loading state
-  if (!permission) {
-    console.log('[DEBUG] Waiting for permission');
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#00BBD3" />
-        <Text style={styles.loadingText}>Checking camera permission...</Text>
-      </View>
-    );
-  }
+  useFrame(() => {});
 
-  // Permission denied state
-  if (permission.status !== 'granted') {
-    console.log('[DEBUG] Permission denied');
-    return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.errorText}>Camera permission required</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={requestPermission}>
-          <Text style={styles.retryButtonText}>Retry</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
-  // WebView HTML with dynamic animation control
-  const getWebViewHtml = () => `
-    <html>
-      <head>
-        <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-        <script src="https://unpkg.com/aframe-extras@7.4.0/dist/aframe-extras.min.js"></script>
-        <style>
-          body { margin: 0; background: transparent; }
-          a-scene { background: transparent; }
-        </style>
-      </head>
-      <body>
-        <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
-          <a-assets>
-            <a-asset-item id="model" src="${arPoseUrl}"></a-asset-item>
-          </a-assets>
-          <a-entity
-            gltf-model="#model"
-            scale="2 2 2"
-            position="0 0 -3"
-            rotation="0 0 0"
-          ></a-entity>
-          <a-camera position="0 1.6 0" look-controls="enabled: false"></a-camera>
-        </a-scene>
-        <script>
-          console.log('WebView script executing');
-          document.addEventListener('DOMContentLoaded', () => {
-            console.log('WebView DOM loaded');
-            window.ReactNativeWebView.postMessage('bridge-ready');
-            const entity = document.querySelector('a-entity');
-            entity.addEventListener('model-loaded', () => {
-              console.log('Model loaded');
-              window.ReactNativeWebView.postMessage('model-loaded');
-              if (${isAnimating}) {
-                entity.setAttribute('animation-mixer', 'clip: *; loop: repeat;');
-              }
-            });
-            entity.addEventListener('model-error', (event) => {
-              console.error('Model error:', event.detail.src);
-              window.ReactNativeWebView.postMessage('model-error: ' + event.detail.src);
-            });
-          });
-          window.addEventListener('message', (event) => {
-            const entity = document.querySelector('a-entity');
-            console.log('Received message:', event.data);
-            if (event.data === 'start') {
-              entity.setAttribute('animation-mixer', 'clip: *; loop: repeat;');
-            } else if (event.data === 'stop') {
-              entity.setAttribute('animation-mixer', '');
-            }
-          });
-        </script>
-      </body>
-    </html>
-  `;
-
-  return (
-    <View style={styles.container}>
-      {/* Camera Feed */}
-      {Camera.CameraView && !cameraError ? (
-        <Camera.CameraView
-          style={StyleSheet.absoluteFill}
-          facing="front"
-          onCameraReady={() => {
-            console.log('[INFO] Camera ready');
-            setIsCameraReady(true);
-          }}
-          onMountError={(error) => {
-            console.error('[ERROR] Camera error:', error.message);
-            setCameraError(error.message);
-          }}
-        />
-      ) : (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{cameraError || 'Camera unavailable'}</Text>
-        </View>
-      )}
-
-      {/* WebView for AR Avatar */}
-      {isWebViewValid && arPoseUrl && !webViewError ? (
-        <WebView
-          ref={webViewRef}
-          style={StyleSheet.absoluteFill}
-          source={{ html: getWebViewHtml() }}
-          allowsInlineMediaPlayback={true}
-          mediaPlaybackRequiresUserAction={false}
-          style={{ backgroundColor: 'transparent' }}
-          onLoadStart={() => console.log('[DEBUG] WebView loading started')}
-          onLoadEnd={() => console.log('[INFO] WebView HTML loaded')}
-          onError={(e) => {
-            console.error('[ERROR] WebView error:', e.nativeEvent.description);
-            setWebViewError(e.nativeEvent.description);
-          }}
-          onMessage={(event) => {
-            const data = event.nativeEvent.data;
-            console.log('[DEBUG] WebView message received:', data);
-            if (data === 'bridge-ready') {
-              console.log('[INFO] WebView bridge ready');
-              setIsWebViewBridgeReady(true);
-            } else if (data === 'model-loaded') {
-              console.log('[INFO] Model fully loaded');
-              setIsModelLoaded(true);
-            } else if (data.startsWith('model-error:')) {
-              console.error('[ERROR] Model load failed:', data);
-              setWebViewError('Failed to load model');
-            }
-          }}
-        />
-      ) : (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{webViewError || 'WebView error'}</Text>
-        </View>
-      )}
-
-      {/* Header */}
-      <LinearGradient
-        colors={['rgba(51, 228, 219, 0.8)', 'rgba(0, 187, 211, 0.8)']}
-        style={styles.header}
-      >
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => {
-            console.log('[DEBUG] Back button pressed');
-            navigation.goBack();
-          }}
-        >
-          {/* <Ionicons name="arrow-back" size={24} color="white" /> */}
-        </TouchableOpacity>
-        <Text style={styles.headerText}>AR Avatar Viewer</Text>
-      </LinearGradient>
-
-      {/* Loading Overlay */}
-      {!isModelLoaded && (
-        <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#00BBD3" />
-          <Text style={styles.loadingText}>Loading AR Avatar...</Text>
-        </View>
-      )}
-
-      {/* Start/Pause Button */}
-      <TouchableOpacity
-        style={[styles.fabPlay, !isModelLoaded && styles.fabDisabled]}
-        onPress={toggleAnimation}
-        disabled={!isModelLoaded}
-      >
-        <Ionicons
-          name={isAnimating ? 'pause' : 'play'}
-          size={24}
-          color="white"
-        />
-        <Text style={styles.fabText}>{isAnimating ? 'Pause' : 'Start'}</Text>
-      </TouchableOpacity>
-
-      {/* End Button */}
-      <TouchableOpacity style={styles.fabEnd} onPress={handleEndSession}>
-        <Ionicons name="stop-circle-outline" size={24} color="white" />
-        <Text style={styles.fabText}>End</Text>
-      </TouchableOpacity>
-    </View>
+  return gltf.scene ? (
+    <primitive ref={meshRef} object={gltf.scene} position={avatarPosition} scale={avatarScale} />
+  ) : (
+    <mesh>
+      <boxGeometry args={[1, 1, 1]} />
+      <meshStandardMaterial color="#ff0000" />
+    </mesh>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000',
-  },
-  header: {
-    height: 60,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 10,
-  },
-  backButton: {
-    position: 'absolute',
-    left: 15,
-    top: 20,
-  },
-  headerText: {
-    fontSize: 20,
-    color: 'white',
-    fontWeight: '600',
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorText: {
-    color: 'red',
-    textAlign: 'center',
-    fontSize: 16,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-  },
-  loadingOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  loadingText: {
-    color: 'white',
-    marginTop: 10,
-    fontSize: 16,
-  },
-  fabPlay: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#00BBD3',
-    padding: 15,
-    borderRadius: 30,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-  },
-  fabEnd: {
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FF4D4F',
-    padding: 15,
-    borderRadius: 30,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-  },
-  fabText: {
-    color: 'white',
-    marginLeft: 10,
-    fontSize: 16,
-  },
-  fabDisabled: {
-    opacity: 0.5,
-  },
-  retryButton: {
-    marginTop: 20,
-    backgroundColor: '#00BBD3',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 25,
-  },
-  retryButtonText: {
-    color: 'white',
-    fontSize: 16,
-  },
-});
+const ARAvatarScreen: React.FC<{
+  route: { params?: { arPoseUrl?: string; therapyName?: string } };
+  navigation: { goBack: () => void };
+}> = ({ route, navigation }) => {
+  const { arPoseUrl = 'https://res.cloudinary.com/dmwaockgw/image/upload/v1741590782/warrior_II_lp2hfq.glb', therapyName = 'Warrior II' } = route.params || {};
 
-export default ARAvatarScreen;
+  const [feedback, setFeedback] = useState<string>('Please stand 2-3 meters back and calibrate.');
+  const [shortFeedback, setShortFeedback] = useState<string>('Calibrate to start');
+  const [isCameraReady, setIsCameraReady] = useState<boolean>(false);
+  const [permission, requestPermission] = useCameraPermissions();
+  const [isAnimating, setIsAnimating] = useState<boolean>(false);
+  const [modelUri, setModelUri] = useState<string | null>(null);
+  const [targetLandmarks, setTargetLandmarks] = useState<any[]>([]);
+  const [isCalibrated, setIsCalibrated] = useState<boolean>(false);
+  const [matchPercentage, setMatchPercentage] = useState(0);
+  const [userLandmarks, setUserLandmarks] = useState<any[]>([]);
+  const [jointStatus, setJointStatus] = useState<{ name: string, isCorrect: boolean }[]>([]);
+  const [frameBuffer, setFrameBuffer] = useState<string | null>(null);
+  const [showPopup, setShowPopup] = useState<boolean>(false); // State for popup visibility
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const cameraRef = useRef<CameraView>(null);
+  const { width, height } = useWindowDimensions();
+  const processFrameQueue = useRef<Promise<void> | null>(null);
 
-// import React, { useState, useEffect, useRef } from 'react';
-// import {
-//   View,
-//   Text,
-//   StyleSheet,
-//   TouchableOpacity,
-//   ActivityIndicator,
-// } from 'react-native';
-// import * as Camera from 'expo-camera';
-// import { useCameraPermissions } from 'expo-camera';
-// import WebView from 'react-native-webview';
-// import { LinearGradient } from 'expo-linear-gradient';
-// import Ionicons from 'react-native-vector-icons/Ionicons';
-// import * as ScreenOrientation from 'expo-screen-orientation'; 
-// // type ARAvatarScreenProps = {
-// //   route: {
-// //     params: {
-// //       arPoseUrl: string;
-// //       therapyName: string;
-// //       poseLandmarks: { x: number; y: number; name: string }[];
-// //     };
-// //   };
-// //   navigation: any;
-// // };
+  const connections = [
+    ['nose', 'left_shoulder'],
+    ['nose', 'right_shoulder'],
+    ['left_shoulder', 'left_elbow'],
+    ['right_shoulder', 'right_elbow'],
+    ['left_elbow', 'left_wrist'],
+    ['right_elbow', 'right_wrist'],
+    ['left_shoulder', 'left_hip'],
+    ['right_shoulder', 'right_hip'],
+    ['left_hip', 'left_knee'],
+    ['right_hip', 'right_knee'],
+    ['left_knee', 'left_ankle'],
+    ['right_knee', 'right_ankle'],
+    ['left_hip', 'right_hip'],
+  ];
 
-// const ARAvatarScreen = ({ route, navigation }) => {
-//   const { arPoseUrl, therapyName } = route.params || {};
-//   console.log('[DEBUG] Route params received:', JSON.stringify(route.params, null, 2));
+  const angleDefinitions = [
+    { joint1: 'left_shoulder', joint2: 'left_elbow', joint3: 'left_wrist', name: 'left elbow angle' },
+    { joint1: 'right_shoulder', joint2: 'right_elbow', joint3: 'right_wrist', name: 'right elbow angle' },
+    { joint1: 'left_hip', joint2: 'left_knee', joint3: 'left_ankle', name: 'left knee angle' },
+    { joint1: 'right_hip', joint2: 'right_knee', joint3: 'right_ankle', name: 'right knee angle' },
+  ];
 
-//   // State variables
-//   const [permission, requestPermission] = useCameraPermissions();
-//   const [isCameraReady, setIsCameraReady] = useState(false);
-//   const [isWebViewValid, setIsWebViewValid] = useState(false);
-// const [cameraError, setCameraError] = useState(null);
-// const [webViewError, setWebViewError] = useState(null);
-//  const [isModelLoaded, setIsModelLoaded] = useState(false);
-// const [isAnimating, setIsAnimating] = useState(false);
-// const [isWebViewBridgeReady, setIsWebViewBridgeReady] = useState(false);
-//   // const [feedback, setFeedback] = useState<string>('');
-//   // const [isPoseDetectionReady, setIsPoseDetectionReady] = useState(false);
-//   const webViewRef = useRef(null);
+  useEffect(() => {
+    const originalError = console.error;
+    console.error = (...args) => {
+      if (typeof args[0] === 'string' && args[0].includes("THREE.GLTFLoader: Couldn't load texture")) {
+        originalError('[SUPPRESSED FROM UI] THREE.GLTFLoader: Couldn’t load texture', ...args.slice(1));
+      } else {
+        originalError(...args);
+      }
+    };
+    return () => {
+      console.error = originalError;
+    };
+  }, []);
 
-//   // useEffect(() => {
-//   //   console.log('[DEBUG] Validating poseLandmarks');
-//   //   if (!poseLandmarks || poseLandmarks.length === 0) {
-//   //     console.warn('[WARN] No pose landmarks provided');
-//   //     setFeedback('No reference pose data available');
-//   //   } else {
-//   //     console.log('[INFO] Pose landmarks received:', JSON.stringify(poseLandmarks, null, 2));
-//   //   }
-//   // }, [poseLandmarks]);
+  useEffect(() => {
+    const loadAsset = async () => {
+      if (arPoseUrl && arPoseUrl.startsWith('http')) {
+        setModelUri(arPoseUrl);
+      } else {
+        setModelUri(null);
+      }
+    };
+    loadAsset();
+  }, [arPoseUrl]);
 
-//   // locking effect from original
-//   useEffect(() => {
-//     console.log('[DEBUG] Component mounted');
-//     const lockOrientation = async () => {
-//       try {
-//         console.log('[DEBUG] Locking screen to landscape');
-//         const currentOrientation = await ScreenOrientation.getOrientationAsync();
-//         console.log('[DEBUG] Current orientation:', currentOrientation);
-//         await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
-//         console.log('[INFO] Screen locked to landscape');
-//       } catch (error) {
-//         console.error('[ERROR] Failed to lock orientation:', error.message);
-//       }
-//     };
+  useEffect(() => {
+    const lockOrientation = async () => {
+      try {
+        console.log('[DEBUG] Attempting to lock orientation to portrait');
+        await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
+        console.log('[DEBUG] Orientation locked to portrait');
+      } catch (error) {
+        console.error('[ERROR] Failed to lock orientation:', (error as Error)?.message || error);
+      }
+    };
+    lockOrientation();
 
-//     const unlockOrientation = async () => {
-//       try {
-//         console.log('[DEBUG] Unlocking screen orientation');
-//         await ScreenOrientation.unlockAsync();
-//         console.log('[INFO] Screen orientation unlocked');
-//       } catch (error) {
-//         console.error('[ERROR] Failed to unlock orientation:', error.message);
-//       }
-//     };
+    return () => {
+      if (intervalRef.current) {
+        console.log('[DEBUG] Clearing frame capture interval');
+        clearInterval(intervalRef.current);
+        console.log('[DEBUG] Frame capture interval cleared');
+      }
+      ScreenOrientation.unlockAsync().catch((error) => console.error('[ERROR] Failed to unlock orientation:', error.message));
+    };
+  }, []);
 
-//     lockOrientation();
-//     return () => {
-//       console.log('[DEBUG] Component unmounting');
-//       unlockOrientation();
-//     };
-//   }, []);
+  type TherapyKey = keyof typeof allTherapyData;
 
-//   // Validate components
-//   useEffect(() => {
-//     console.log('[DEBUG] Validating components');
-//     if (!Camera.CameraView) {
-//       console.error('[ERROR] CameraView unavailable');
-//       setCameraError("Camera component unavailable");
-//     }
-//     if (!WebView) {
-//       console.error('[ERROR] WebView unavailable');
-//       setIsWebViewValid(false);
-//     } else {
-//       console.log('[INFO] WebView component validated');
-//       setIsWebViewValid(true);
-//     }
-//     if (!navigation?.navigate) {
-//       console.error('[ERROR] Navigation prop invalid');
-//     }
-//   }, [navigation]);
+  useEffect(() => {
+    try {
+      const therapyKey = therapyName.replace(" ", "_") as TherapyKey;
+      console.log('[DEBUG] Accessing therapy data for:', therapyKey);
 
-//   // arPoseUrl validation
-//   useEffect(() => {
-//     console.log('[DEBUG] Validating arPoseUrl:', arPoseUrl);
-//     if (!arPoseUrl) {
-//       console.warn('[WARN] arPoseUrl missing');
-//       setWebViewError('arPoseUrl is missing');
-//     } else {
-//       try {
-//         new URL(arPoseUrl);
-//         console.log('[INFO] arPoseUrl valid');
-//       } catch (error) {
-//         console.error('[ERROR] Invalid arPoseUrl:', error.message);
-//         setWebViewError('Invalid arPoseUrl');
-//       }
-//     }
-//   }, [arPoseUrl]);
+      const therapyData = allTherapyData[therapyKey];
+      if (therapyData && therapyData.landmarks) {
+        console.log('[DEBUG] Loaded target landmarks from JSON:', JSON.stringify(therapyData.landmarks, null, 2));
+        setTargetLandmarks(therapyData.landmarks);
+      } else {
+        console.error('[ERROR] No landmarks found for therapy:', therapyName);
+        setTargetLandmarks([]);
+        setFeedback('Error: Pose data not found in all_therapy_data.json.');
+        setShortFeedback('Data missing');
+      }
+    } catch (error) {
+      console.error('[ERROR] Failed to load landmarks from JSON:', (error as any)?.message || String(error));
+      setTargetLandmarks([]);
+        setFeedback('Error loading pose data. Check all_therapy_data.json.');
+        setShortFeedback('Data error');
+      }
+    }, [therapyName]);
 
-//   // Camera permission handling
-//   useEffect(() => {
-//     if (!permission) {
-//       console.log('[DEBUG] Permission not initialized');
-//       return;
-//     }
-//     if (permission.status !== 'granted') {
-//       console.log('[DEBUG] Requesting camera permission');
-//       requestPermission();
-//     } else {
-//       console.log('[INFO] Camera permission granted');
-//     }
-//   }, [permission, requestPermission]);
+    useEffect(() => {
+      if (isCameraReady && cameraRef.current && permission?.granted && targetLandmarks.length > 0 && isCalibrated) {
+        console.log('[DEBUG] Camera is ready, permissions granted, calibrated, and target landmarks loaded, starting frame capture interval');
+        intervalRef.current = setInterval(captureFrame, 500);
+        console.log('[DEBUG] Frame capture interval started (500ms)');
+      } else {
+        console.log('[DEBUG] Frame capture interval not started. Conditions:', {
+          isCameraReady,
+          cameraRefExists: !!cameraRef.current,
+          permissionGranted: permission?.granted,
+          targetLandmarksLoaded: targetLandmarks.length > 0,
+          isCalibrated,
+        });
+      }
+      return () => {
+        if (intervalRef.current) clearInterval(intervalRef.current);
+      };
+    }, [isCameraReady, permission, targetLandmarks, isCalibrated]);
 
-//   // Animation toggle function
-//   const toggleAnimation = () => {
-//     if (!isModelLoaded) {
-//       console.log('[DEBUG] Animation toggle ignored: model not loaded');
-//       return;
-//     }
-//     setIsAnimating((prev) => {
-//       const newState = !prev;
-//       console.log('[DEBUG] Toggling animation to:', newState);
-//       if (isWebViewBridgeReady && webViewRef.current) {
-//         const message = newState ? 'start' : 'stop';
-//         console.log('[DEBUG] Sending message to WebView:', message);
-//         try {
-//           webViewRef.current.postMessage(message);
-//           console.log('[INFO] Message sent successfully');
-//         } catch (error) {
-//           console.error('[ERROR] Failed to send message:', error.message);
-//         }
-//       } else {
-//         console.warn('[WARN] WebView bridge not ready or ref missing');
-//       }
-//       return newState;
-//     });
-//   };
+    const calibrateCamera = async () => {
+      if (!cameraRef.current || !permission?.granted) {
+        console.error('[ERROR] Cannot calibrate: Camera not ready or permission denied');
+        setFeedback('Camera not ready for calibration.');
+        setShortFeedback('Camera error');
+        return;
+      }
 
-//   // End session function
-//   const handleEndSession = async () => {
-//     console.log('[DEBUG] Ending session');
-//     try {
-//       if (webViewRef.current && isWebViewBridgeReady) {
-//         console.log('[DEBUG] Sending stop message before navigation');
-//         webViewRef.current.postMessage('stop');
-//       }
-//       console.log('[DEBUG] Locking to portrait');
-//       await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
-//       console.log('[INFO] Navigating to TherapyDetails');
-//       navigation.navigate('TherapyDetails', { therapyName });
-//     } catch (error) {
-//       console.error('[ERROR] Failed to end session:', error.message);
-//     }
-//   };
+      try {
+        console.log('[DEBUG] Starting camera calibration');
+        const photo = await cameraRef.current.takePictureAsync({ base64: true, quality: 0.1 });
+        const response = await axios.post('http://192.168.8.134:5000/process_frame', { frame: photo.base64 }, { timeout: 10000 });
+        console.log('[DEBUG] Calibration frame response:', JSON.stringify(response.data, null, 2));
 
-//   // Permission loading state
-//   if (!permission) {
-//     console.log('[DEBUG] Waiting for permission');
-//     return (
-//       <View style={styles.loadingContainer}>
-//         <ActivityIndicator size="large" color="#00BBD3" />
-//         <Text style={styles.loadingText}>Checking camera permission...</Text>
-//       </View>
-//     );
-//   }
+        if (response.data.landmarks && response.data.landmarks.length > 0) {
+          const calibrationOffset = computeCalibrationOffset(response.data.landmarks);
+          console.log('[DEBUG] Calibration offset computed:', JSON.stringify(calibrationOffset, null, 2));
+          setIsCalibrated(true);
+          setFeedback('Calibration successful! Start posing.');
+          setShortFeedback('Calibrated!');
+        } else {
+          console.warn('[WARN] No landmarks detected during calibration');
+          setFeedback('Calibration failed. Ensure you are fully visible.');
+          setShortFeedback('No landmarks');
+        }
+      } catch (error) {
+        console.error('[ERROR] Calibration error:', (error as any)?.message || String(error));
+        setFeedback('Calibration error. Please try again.');
+        setShortFeedback('Calibration failed');
+      }
+    };
 
-//   // Permission denied state
-//   if (permission.status !== 'granted') {
-//     console.log('[DEBUG] Permission denied');
-//     return (
-//       <View style={styles.loadingContainer}>
-//         <Text style={styles.errorText}>Camera permission required</Text>
-//         <TouchableOpacity style={styles.retryButton} onPress={requestPermission}>
-//           <Text style={styles.retryButtonText}>Retry</Text>
-//         </TouchableOpacity>
-//       </View>
-//     );
-//   }
+    const computeCalibrationOffset = (userLandmarks: any[]) => {
+      const offset = {
+        x: userLandmarks.reduce((sum, lm) => sum + lm.x, 0) / userLandmarks.length,
+        y: userLandmarks.reduce((sum, lm) => sum + lm.y, 0) / userLandmarks.length,
+        z: userLandmarks.reduce((sum, lm) => sum + lm.z, 0) / userLandmarks.length,
+      };
+      return offset;
+    };
 
-//   // WebView HTML with dynamic animation control
-//  const getWebViewHtml = () => `
-//     <html>
-//       <head>
-//         <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-//         <script src="https://unpkg.com/aframe-extras@7.4.0/dist/aframe-extras.min.js"></script>
-//         <!-- <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466008/camera_utils.js" crossorigin="anonymous"></script> -->
-//         <!-- <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/pose.js" crossorigin="anonymous"></script> -->
-        
-//         <style>
-//           body { margin: 0; background: transparent; overflow: hidden; }
-//           a-scene { background: transparent; }
-//           /* a-scene { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent; } */
-//           /* #videoElement { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; } */
-//         </style>
-//       </head>
-      
-//       <body>
-//         <!-- <video id="videoElement" autoplay playsinline></video> -->
-//         <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
-//           <a-assets>
-//             <a-asset-item id="model" src="${arPoseUrl}"></a-asset-item>
-//           </a-assets>
-          
-//           <a-entity
-//             gltf-model="#model"
-//             scale="2 2 2"
-//             position="0 0 -3"
-//             rotation="0 0 0"
-//           ></a-entity>
-//           <a-camera position="0 1.6 0" look-controls="enabled: false"></a-camera>
-//         </a-scene>
-        
-//         <script>
-//           console.log('[DEBUG] WebView script executing');
-//           console.log('[DEBUG] Reference pose loaded:', referencePose); -->
+    const landmarkNames = {
+      0: 'nose',
+      11: 'left_shoulder',
+      12: 'right_shoulder',
+      13: 'left_elbow',
+      14: 'right_elbow',
+      15: 'left_wrist',
+      16: 'right_wrist',
+      23: 'left_hip',
+      24: 'right_hip',
+      25: 'left_knee',
+      26: 'right_knee',
+      27: 'left_ankle',
+      28: 'right_ankle',
+    };
 
-//           <!-- if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-//             console.error('[ERROR] getUserMedia not supported');
-//             window.ReactNativeWebView.postMessage('pose-detection-error: getUserMedia not supported');
-//             return;
-//           } -->
+    const mapLandmarks = (landmarks: any[]) => {
+      return landmarks.map((lm, index) => ({
+        name: landmarkNames[index as keyof typeof landmarkNames] || `landmark_${index}`,
+        x: lm.x,
+        y: lm.y,
+        z: lm.z,
+      }));
+    };
 
-//           <!-- const pose = new Pose({
-//             locateFile: (file) => {
-//               console.log('[DEBUG] Loading MediaPipe file:', file);
-//               return \`https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/\${file}\`;
-//             },
-//           }); -->
-//           <!-- pose.setOptions({
-//             modelComplexity: 1,
-//             smoothLandmarks: true,
-//             minDetectionConfidence: 0.5,
-//             minTrackingConfidence: 0.5,
-//           });
-//           pose.onResults(onResults); -->
+    const calculateAngle = (joint1: any, joint2: any, joint3: any) => {
+      const vector1 = { x: joint1.x - joint2.x, y: joint1.y - joint2.y };
+      const vector2 = { x: joint3.x - joint2.x, y: joint3.y - joint2.y };
 
-//           <!-- const videoElement = document.getElementById('videoElement');
-//           const camera = new Camera(videoElement, {
-//             onFrame: async () => {
-//               await pose.send({ image: videoElement });
-//             },
-//             width: 640,
-//             height: 480,
-//           }); -->
+      const dotProduct = vector1.x * vector2.x + vector1.y * vector2.y;
+      const magnitude1 = Math.sqrt(vector1.x ** 2 + vector1.y ** 2);
+      const magnitude2 = Math.sqrt(vector2.x ** 2 + vector2.y ** 2);
 
-//           <!-- navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
-//             .then((stream) => {
-//               videoElement.srcObject = stream;
-//               videoElement.onloadedmetadata = () => {
-//                 videoElement.play();
-//                 camera.start().then(() => {
-//                   console.log('[INFO] Camera started for pose detection');
-//                   window.ReactNativeWebView.postMessage('pose-detection-ready');
-//                 }).catch(err => {
-//                   console.error('[ERROR] Camera start failed:', err);
-//                   window.ReactNativeWebView.postMessage('pose-detection-error: ' + err.message);
-//                 });
-//               };
-//             })
-//             .catch(err => {
-//               console.error('[ERROR] getUserMedia failed:', err);
-//               window.ReactNativeWebView.postMessage('pose-detection-error: ' + err.message);
-//             }); -->
+      if (magnitude1 === 0 || magnitude2 === 0) return 0;
 
-//           <!-- function onResults(results) {
-//             if (!results.poseLandmarks) {
-//               console.log('[DEBUG] No pose landmarks detected');
-//               window.ReactNativeWebView.postMessage(JSON.stringify({ error: 'No pose detected' }));
-//               return;
-//             }
+      const angleRad = Math.acos(dotProduct / (magnitude1 * magnitude2));
+      return (angleRad * 180) / Math.PI;
+    };
 
-//             console.log('[DEBUG] Pose landmarks detected:', results.poseLandmarks);
-//             const deviation = calculatePoseDeviation(results.poseLandmarks, referencePose);
-//             console.log('[DEBUG] Calculated deviation:', deviation);
-//             window.ReactNativeWebView.postMessage(JSON.stringify(deviation));
-//           } -->
+    const comparePoses = (userLandmarks: any[], targetLandmarks: any[]) => {
+      const targetMap = new Map(targetLandmarks.map(lm => [lm.name, lm]));
+      const userMap = new Map(userLandmarks.map(lm => [lm.name, lm]));
+      const relevantUserLandmarks = userLandmarks.filter(lm => targetMap.has(lm.name));
 
-//           <!-- function calculatePoseDeviation(userLandmarks, referenceLandmarks) {
-//             console.log('[DEBUG] Calculating pose deviation');
-//             if (!referenceLandmarks || referenceLandmarks.length === 0) {
-//               console.warn('[WARN] No reference landmarks available');
-//               return { error: 'No reference pose' };
-//             }
+      if (!relevantUserLandmarks.length || !targetLandmarks.length) {
+        return {
+          feedback: 'No pose detected. Ensure you are fully visible.',
+          shortFeedback: 'No pose',
+          jointStatus: [],
+          matchPercentage: 0
+        };
+      }
 
-//             let totalDeviation = 0;
-//             let feedback = '';
+      let feedback = '';
+      let shortFeedback = '';
+      let matches = 0;
+      const totalComparisons = angleDefinitions.length;
+      const jointStatus: { name: string, isCorrect: boolean }[] = [];
+      const tolerance = 10;
 
-//             referenceLandmarks.forEach(refPoint => {
-//               const userPoint = userLandmarks.find(p => p.name === refPoint.name);
-//               if (!userPoint) {
-//                 console.warn('[WARN] Missing user keypoint:', refPoint.name);
-//                 return;
-//               }
+      angleDefinitions.forEach(({ joint1, joint2, joint3, name }) => {
+        const userJ1 = userMap.get(joint1);
+        const userJ2 = userMap.get(joint2);
+        const userJ3 = userMap.get(joint3);
+        const targetJ1 = targetMap.get(joint1);
+        const targetJ2 = targetMap.get(joint2);
+        const targetJ3 = targetMap.get(joint3);
 
-//               const distance = Math.sqrt(
-//                 Math.pow(userPoint.x - refPoint.x, 2) +
-//                 Math.pow(userPoint.y - refPoint.y, 2)
-//               );
-//               totalDeviation += distance;
-//               console.log('[DEBUG] Distance for keypoint', refPoint.name, ':', distance);
-//             });
+        if (userJ1 && userJ2 && userJ3 && targetJ1 && targetJ2 && targetJ3) {
+          const userAngle = calculateAngle(userJ1, userJ2, userJ3);
+          const targetAngle = calculateAngle(targetJ1, targetJ2, targetJ3);
+          const angleDiff = Math.abs(userAngle - targetAngle);
+          const isCorrect = angleDiff <= tolerance;
 
-//             totalDeviation /= referenceLandmarks.length;
-//             console.log('[DEBUG] Average deviation:', totalDeviation);
+          if (isCorrect) matches++;
 
-//             if (totalDeviation < 0.1) {
-//               feedback = 'Good posture!';
-//             } else if (totalDeviation < 0.2) {
-//               feedback = 'Slightly adjust your posture';
-//             } else {
-//               feedback = 'Straighten your back and adjust position';
-//             }
+          [joint1, joint2, joint3].forEach(joint => {
+            if (!jointStatus.find(js => js.name === joint)) {
+              jointStatus.push({ name: joint, isCorrect });
+            }
+          });
 
-//             return { deviation: totalDeviation, feedback };
-//           } -->
+          if (!isCorrect && !shortFeedback) {
+            shortFeedback = `Adjust your ${name.replace('angle', '').trim()}`;
+            if (userAngle > targetAngle) {
+              shortFeedback += ' to bend less';
+            } else {
+              shortFeedback += ' to bend more';
+            }
+          }
+        }
+      });
 
-//           document.addEventListener('DOMContentLoaded', () => {
-//             console.log('[DEBUG] WebView DOM loaded');
-//             window.ReactNativeWebView.postMessage('bridge-ready');
-//             const entity = document.querySelector('a-entity');
-//             entity.addEventListener('model-loaded', () => {
-//               console.log('[INFO] Model loaded');
-//               window.ReactNativeWebView.postMessage('model-loaded');
-//               if (${isAnimating}) {
-//                 entity.setAttribute('animation-mixer', 'clip: *; loop: repeat;');
-//               }
-//             });
-//             entity.addEventListener('model-error', (event) => {
-//               console.error('[ERROR] Model error:', event.detail.src);
-//               window.ReactNativeWebView.postMessage('model-error: ' + event.detail.src);
-//             });
-//           });
+      const matchPercentage = (matches / totalComparisons) * 100;
+      feedback = `Match: ${Math.round(matchPercentage)}%`;
 
-//           window.addEventListener('message', (event) => {
-//             const entity = document.querySelector('a-entity');
-//             console.log('[DEBUG] Received message:', event.data);
-//             if (event.data === 'start') {
-//               entity.setAttribute('animation-mixer', 'clip: *; loop: repeat;');
-//             } else if (event.data === 'stop') {
-//               entity.setAttribute('animation-mixer', '');
-//             }
-//           });
-//         </script>
-//       </body>
-//     </html>
-//   `;
+      if (matchPercentage >= 80 && !shortFeedback) {
+        shortFeedback = 'Perfect pose!';
+        setShowPopup(true); // Show popup when pose is perfect
+      } else if (matchPercentage >= 60 && !shortFeedback) {
+        shortFeedback = 'Great job!';
+      } else if (!shortFeedback) {
+        shortFeedback = 'Keep going!';
+      }
 
-//   return (
-//     <View style={styles.container}>
-//       {/* Camera Feed */}
-//       {Camera.CameraView && !cameraError ? (
-//           <Camera.CameraView
-//             style={StyleSheet.absoluteFill}
-//             facing="front"
-//             onCameraReady={() => {
-//               console.log('[INFO] Camera ready');
-//               setIsCameraReady(true);
-//             }}
-//             onMountError={(error) => {
-//               console.error('[ERROR] Camera error:', error.message);
-//               setCameraError(error.message);
-//             }}
-//           />
-//         ) : (
-//           <View style={styles.errorContainer}>
-//             <Text style={styles.errorText}>{cameraError || 'Camera unavailable'}</Text>
-//           </View>
-//         )}
+      return { feedback, shortFeedback, jointStatus, matchPercentage };
+    };
 
-//       {/* WebView for AR Avatar */}
-//       {isWebViewValid && arPoseUrl && !webViewError ? (
-//         <WebView
-//         ref={webViewRef}
-//         style={StyleSheet.absoluteFill}
-//         source={{ html: getWebViewHtml() }}
-//         allowsInlineMediaPlayback={true}
-//         mediaPlaybackRequiresUserAction={false}
-//         style={{ backgroundColor: 'transparent' }}
-//         onLoadStart={() => console.log('[DEBUG] WebView loading started')}
-//         onLoadEnd={() => console.log('[INFO] WebView HTML loaded')}
-//         onError={(e) => {
-//           console.error('[ERROR] WebView error:', e.nativeEvent.description);
-//           setWebViewError(e.nativeEvent.description);
-//         }}
-//         onMessage={(event) => {
-//           const data = event.nativeEvent.data;
-//           console.log('[DEBUG] WebView message received:', data);
-//           if (data === 'bridge-ready') {
-//             console.log('[INFO] WebView bridge ready');
-//             setIsWebViewBridgeReady(true);
-//           } else if (data === 'model-loaded') {
-//             console.log('[INFO] Model fully loaded');
-//             setIsModelLoaded(true);
-//           } else if (data.startsWith('model-error:')) {
-//             console.error('[ERROR] Model load failed:', data);
-//             setWebViewError('Failed to load model');
-//           }
-//         }}
-//       />
+    const captureFrame = async () => {
+      if (!cameraRef.current || !permission?.granted || !isCalibrated) {
+        console.error('[ERROR] Cannot capture frame: Camera not ready, permission denied, or not calibrated');
+        setFeedback('Please calibrate the camera first.');
+        setShortFeedback('Calibrate first');
+        return;
+      }
 
-//         // <WebView
-//         //   ref={webViewRef}
-//         //   style={StyleSheet.absoluteFill}
-//         //   source={{ html: getWebViewHtml() }}
-//         //   allowsInlineMediaPlayback={true}
-//         //   mediaPlaybackRequiresUserAction={false}
-//         //   style={{ backgroundColor: 'transparent' }} /* Unchanged: Styling from original */
-//         //   onLoadStart={() => console.log('[DEBUG] WebView loading started')}
-//         //   onLoadEnd={() => console.log('[INFO] WebView HTML loaded')}
-//         //   onError={(e) => {
-//         //     console.error('[ERROR] WebView error:', e.nativeEvent.description);
-//         //     setWebViewError(e.nativeEvent.description);
-//         //   }}
-//         //   onMessage={(event) => {
-//         //     const data = event.nativeEvent.data;
-//         //     console.log('[DEBUG] WebView message received:', data);
-//         //     // Unchanged: Bridge and model-loaded handlers from original
-//         //     if (data === 'bridge-ready') {
-//         //       setIsWebViewBridgeReady(true);
-//         //     } else if (data === 'model-loaded') {
-//         //       setIsModelLoaded(true);
-//         //     } 
-//         //     // New: Pose detection and error handlers, not in original
-//         //     else if (data === 'pose-detection-ready') {
-//         //       setIsPoseDetectionReady(true);
-//         //     } else if (data.startsWith('pose-detection-error:')) {
-//         //       console.error('[ERROR] Pose detection failed:', data);
-//         //       setFeedback('Pose detection failed: ' + data.split(': ')[1]);
-//         //     } 
-//         //     // Modified: Model error handler expanded from original
-//         //     else if (data.startsWith('model-error:')) {
-//         //       console.error('[ERROR] Model load failed:', data);
-//         //       setWebViewError('Failed to load model');
-//         //     } 
-//         //     // New: Pose deviation parsing, not in original
-//         //     else {
-//         //       try {
-//         //         const parsedData = JSON.parse(data);
-//         //         if (parsedData.error) {
-//         //           console.warn('[WARN] Pose detection error:', parsedData.error);
-//         //           setFeedback(parsedData.error);
-//         //         } else {
-//         //           console.log('[DEBUG] Pose deviation data:', parsedData);
-//         //           setFeedback(parsedData.feedback);
-//         //         }
-//         //       } catch (error) {
-//         //         console.error('[ERROR] Failed to parse WebView message:', error.message);
-//         //       }
-//         //     }
-//         //   }}
-//         // />
-//       ) : (
-//         <View style={styles.errorContainer}>
-//           <Text style={styles.errorText}>{webViewError || 'WebView error'}</Text>
-//         </View>
-//       )}
+      try {
+        console.log('[DEBUG] Starting frame capture');
+        const photo = await cameraRef.current.takePictureAsync({ base64: true, quality: 0.05 });
+        console.log('[DEBUG] Frame captured, base64 length:', photo.base64?.length);
+        setFrameBuffer(photo.base64 ?? null);
+      } catch (error) {
+        console.error('[ERROR] Frame capture error:', (error as any)?.message || String(error));
+        setFeedback('Error capturing frame: ' + (error as any)?.message || String(error));
+        setShortFeedback('Frame error');
+        setUserLandmarks([]);
+        setJointStatus([]);
+      }
+    };
 
-//       {/* Header */}
-//       <LinearGradient
-//         colors={['rgba(51, 228, 219, 0.8)', 'rgba(0, 187, 211, 0.8)']}
-//         style={styles.header}
-//       >
-//         <TouchableOpacity
-//           style={styles.backButton}
-//           onPress={() => {
-//             console.log('[DEBUG] Back button pressed');
-//             navigation.goBack();
-//           }}
-//         >
-//           <Ionicons name="arrow-back" size={24} color="white" />
-//         </TouchableOpacity>
-//         <Text style={styles.headerText}>AR Avatar Viewer</Text>
-//       </LinearGradient>
+    const processBufferedFrame = async () => {
+      if (!frameBuffer || !isCalibrated) return;
 
-//       {/* Loading Overlay */}
-//       {!isModelLoaded && (
-//         <View style={styles.loadingOverlay}>
-//           <ActivityIndicator size="large" color="#00BBD3" />
-//           <Text style={styles.loadingText}>Loading AR Avatar...</Text>
-//         </View>
-//       )}
-      
-//       {/* {(!isModelLoaded || !isPoseDetectionReady) && ( */}
-//          {/* <View style={styles.loadingOverlay}> */}
-//            {/* <ActivityIndicator size="large" color="#00BBD3" /> */}
-//            {/* <Text style={styles.loadingText}> */}
-//              {/* {isModelLoaded ? 'Starting pose detection...' : 'Loading AR Avatar...'} New: Dynamic text */}
-//            {/* </Text> */}
-//         {/* </View> */}
-//       {/* )} */}
+      try {
+        console.log('[DEBUG] Processing buffered frame');
+        const response = await axios.post('http://192.168.8.134:5000/process_frame', { frame: frameBuffer }, { timeout: 10000 });
+        console.log('[DEBUG] Frame processing response:', JSON.stringify(response.data, null, 2));
 
-//       {/* {isModelLoaded && isPoseDetectionReady && feedback && ( */}
-//         {/* <View style={styles.feedbackOverlay}> */}
-//           {/* <Text style={styles.feedbackText}>{feedback}</Text> */}
-//         {/* </View> */}
-//       {/* )} */}
+        if (response.data.landmarks && response.data.landmarks.length > 0) {
+          const mappedLandmarks = mapLandmarks(response.data.landmarks);
+          console.log('[DEBUG] Raw mapped landmarks:', JSON.stringify(mappedLandmarks, null, 2)); // Debug log
+          const { feedback, shortFeedback, jointStatus, matchPercentage } = comparePoses(mappedLandmarks, targetLandmarks);
+          setUserLandmarks(mappedLandmarks);
+          setFeedback(feedback);
+          setShortFeedback(shortFeedback);
+          setJointStatus(jointStatus);
+          setMatchPercentage(matchPercentage);
+        } else {
+          console.warn('[WARN] No landmarks detected in frame');
+          setFeedback('No pose detected. Ensure you are fully visible.');
+          setShortFeedback('No pose');
+          setUserLandmarks([]);
+          setJointStatus([]);
+          setMatchPercentage(0);
+        }
+      } catch (error) {
+        console.error('[ERROR] Frame processing error:', (error as any)?.message || String(error));
+        if (axios.isAxiosError(error)) {
+          if (error.code === 'ECONNABORTED') {
+            setFeedback('Network timeout. Please check your connection.');
+            setShortFeedback('Network timeout');
+          } else if (!error.response) {
+            setFeedback('Network error. Please check your connection.');
+            setShortFeedback('Network error');
+          } else {
+            setFeedback('Error processing frame: ' + (error as any).message);
+            setShortFeedback('Frame error');
+          }
+        } else {
+          setFeedback('Error processing frame: ' + (error as any)?.message || String(error));
+          setShortFeedback('Frame error');
+        }
+        setUserLandmarks([]);
+        setJointStatus([]);
+        setMatchPercentage(0);
+      } finally {
+        setFrameBuffer(null);
+      }
+    };
 
-//       {/* Start/Pause button */}
-//       <TouchableOpacity
-//         style={[styles.fabPlay, !isModelLoaded && styles.fabDisabled]}
-//         onPress={toggleAnimation}
-//         disabled={!isModelLoaded}
-//       >
-//         <Ionicons
-//           name={isAnimating ? 'pause' : 'play'}
-//           size={24}
-//           color="white"
-//         />
-//         <Text style={styles.fabText}>{isAnimating ? 'Pause' : 'Start'}</Text>
-//       </TouchableOpacity>
+    useEffect(() => {
+      if (frameBuffer && !processFrameQueue.current) {
+        processFrameQueue.current = processBufferedFrame().finally(() => {
+          processFrameQueue.current = null;
+        });
+      }
+    }, [frameBuffer]);
 
-//       {/* End button */}
-//       <TouchableOpacity style={styles.fabEnd} onPress={handleEndSession}>
-//         <Ionicons name="stop-circle-outline" size={24} color="white" />
-//         <Text style={styles.fabText}>End</Text>
-//       </TouchableOpacity>
-//     </View>
-//   );
-// };
+    const retryAsync = async (fn: () => Promise<void>, retries: number, delay: number) => {
+      try {
+        await fn();
+      } catch (error) {
+        if (retries > 0) {
+          console.log('[DEBUG] Retrying after error:', (error as any)?.message || String(error), `Retries left: ${retries}`);
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          await retryAsync(fn, retries - 1, delay * 2);
+        } else {
+          throw error;
+        }
+      }
+    };
 
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: '#000',
-//   },
-//   header: {
-//     height: 60,
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     justifyContent: 'center',
-//     paddingTop: 10,
-//   },
-//   backButton: {
-//     position: 'absolute',
-//     left: 15,
-//     top: 20,
-//   },
-//   headerText: {
-//     fontSize: 20,
-//     color: 'white',
-//     fontWeight: '600',
-//   },
-//   errorContainer: {
-//     flex: 1,
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//   },
-//   errorText: {
-//     color: 'red',
-//     textAlign: 'center',
-//     fontSize: 16,
-//   },
-//   loadingContainer: {
-//     flex: 1,
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//     backgroundColor: '#fff',
-//   },
-//   loadingOverlay: {
-//     position: 'absolute',
-//     top: 0,
-//     left: 0,
-//     right: 0,
-//     bottom: 0,
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-//   },
-//   loadingText: {
-//     color: 'white',
-//     marginTop: 10,
-//     fontSize: 16,
-//   },
-//   // feedbackOverlay: {
-//   //   position: 'absolute',
-//   //   bottom: 100,
-//   //   left: 0,
-//   //   right: 0,
-//   //   backgroundColor: 'rgba(0, 0, 0, 0.7)',
-//   //   padding: 10,
-//   //   alignItems: 'center',
-//   // },
-//   // feedbackText: {
-//   //   color: 'white',
-//   //   fontSize: 18,
-//   //   fontWeight: 'bold',
-//   // },
-//   fabPlay: {
-//     position: 'absolute',
-//     bottom: 20,
-//     right: 20,
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     backgroundColor: '#00BBD3',
-//     padding: 15,
-//     borderRadius: 30,
-//     elevation: 5,
-//     shadowColor: '#000',
-//     shadowOffset: { width: 0, height: 2 },
-//     shadowOpacity: 0.3,
-//     shadowRadius: 3,
-//   },
-//   fabEnd: {
-//     position: 'absolute',
-//     bottom: 20,
-//     left: 20,
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     backgroundColor: '#FF4D4F',
-//     padding: 15,
-//     borderRadius: 30,
-//     elevation: 5,
-//     shadowColor: '#000',
-//     shadowOffset: { width: 0, height: 2 },
-//     shadowOpacity: 0.3,
-//     shadowRadius: 3,
-//   },
-//   fabText: {
-//     color: 'white',
-//     marginLeft: 10,
-//     fontSize: 16,
-//   },
-//   fabDisabled: {
-//     opacity: 0.5,
-//   },
-//   retryButton: {
-//     marginTop: 20,
-//     backgroundColor: '#00BBD3',
-//     paddingVertical: 10,
-//     paddingHorizontal: 20,
-//     borderRadius: 25,
-//   },
-//   retryButtonText: {
-//     color: 'white',
-//     fontSize: 16,
-//   },
-// });
+    const baseStrokeWidth = 4;
+    const baseCircleRadius = 8;
+    const averageZ = userLandmarks.length > 0
+      ? userLandmarks.reduce((sum, lm) => sum + lm.z, 0) / userLandmarks.length
+      : 0;
+    const distanceFactor = Math.max(1, 1 + Math.abs(averageZ) * 2);
+    const dynamicStrokeWidth = baseStrokeWidth * distanceFactor;
+    const dynamicCircleRadius = baseCircleRadius * distanceFactor;
 
-// export default ARAvatarScreen;
+    // Remove the manual x-flip and rely on camera mirroring
+    const mirroredLandmarks = userLandmarks.map(lm => ({
+      ...lm,
+      // No manual x flip: x: 1 - lm.x, // Commented out
+    }));
+
+    if (!permission?.granted) {
+      return (
+        <LinearGradient colors={['#1E3A8A', '#3B82F6']} style={styles.container}>
+          <Text style={styles.message}>Camera permission required.</Text>
+          <TouchableOpacity style={styles.button} onPress={requestPermission}>
+            <Text style={styles.buttonText}>Grant Permission</Text>
+          </TouchableOpacity>
+        </LinearGradient>
+      );
+    }
+
+    return (
+      <LinearGradient colors={['#1E3A8A', '#3B82F6']} style={styles.container}>
+        <CameraView ref={cameraRef} style={styles.camera} facing="front" onCameraReady={() => setIsCameraReady(true)} />
+        <Svg style={styles.svgOverlay}>
+          {mirroredLandmarks.length > 0 && (
+            <>
+              {connections.map(([start, end], index) => {
+                const startLm = mirroredLandmarks.find(lm => lm.name === start);
+                const endLm = mirroredLandmarks.find(lm => lm.name === end);
+                if (startLm && endLm) {
+                  const x1 = startLm.x * width;
+                  const y1 = startLm.y * height;
+                  const x2 = endLm.x * width;
+                  const y2 = endLm.y * height;
+                  return (
+                    <Line
+                      key={index}
+                      x1={x1}
+                      y1={y1}
+                      x2={x2}
+                      y2={y2}
+                      stroke="#00FFFF"
+                      strokeWidth={dynamicStrokeWidth}
+                    />
+                  );
+                }
+                return null;
+              })}
+              {mirroredLandmarks.map((lm, index) => {
+                const x = lm.x * width;
+                const y = lm.y * height;
+                const status = jointStatus.find(js => js.name === lm.name);
+                const color = status ? (status.isCorrect ? 'green' : 'red') : 'gray';
+                return (
+                  <Circle
+                    key={index}
+                    cx={x}
+                    cy={y}
+                    r={dynamicCircleRadius}
+                    fill={color}
+                  />
+                );
+              })}
+            </>
+          )}
+        </Svg>
+        <View style={styles.feedbackOverlay}>
+          <View style={[
+            styles.matchCircle,
+            { backgroundColor: matchPercentage >= 80 ? '#34D399' : matchPercentage >= 60 ? '#FBBF24' : '#F87171' }
+          ]}>
+            <Text style={styles.matchText}>{Math.round(matchPercentage)}%</Text>
+          </View>
+          <Text style={styles.feedback}>{shortFeedback}</Text>
+          <View style={styles.progressBar}>
+            <View style={[styles.progressFill, { width: `${matchPercentage}%`, backgroundColor: matchPercentage >= 80 ? '#34D399' : matchPercentage >= 60 ? '#FBBF24' : '#F87171' }]} />
+          </View>
+        </View>
+        <View style={styles.avatarWindow}>
+          <Canvas style={styles.canvas} camera={{ position: [0, 0, 5], fov: 50 }}>
+            <ambientLight intensity={1.0} />
+            <directionalLight position={[0, 1, 1]} intensity={1.5} />
+            <Avatar isAnimating={isAnimating} url={modelUri} />
+          </Canvas>
+        </View>
+        {!isCalibrated && (
+          <TouchableOpacity style={styles.calibrateButton} onPress={calibrateCamera}>
+            <Text style={styles.buttonText}>Calibrate</Text>
+          </TouchableOpacity>
+        )}
+        <View style={styles.buttonBar}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="white" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setIsAnimating((prev) => !prev)} style={[styles.startButton, isAnimating ? styles.startButtonActive : null]}>
+            <Ionicons name={isAnimating ? "pause" : "play"} size={24} color="white" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Popup Modal */}
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={showPopup}
+          onRequestClose={() => setShowPopup(false)}
+        >
+          <View style={styles.popupContainer}>
+            <LinearGradient colors={['#33E4DB', '#00BBD3']} style={styles.popup}>
+              <Text style={styles.popupText}>Congratulations!</Text>
+              <Text style={styles.popupSubText}>You've mastered the {therapyName} pose!</Text>
+              <TouchableOpacity onPress={() => setShowPopup(false)} style={styles.popupButton}>
+                <Text style={styles.popupButtonText}>Continue</Text>
+              </TouchableOpacity>
+            </LinearGradient>
+          </View>
+        </Modal>
+      </LinearGradient>
+    );
+  };
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    camera: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      zIndex: 0,
+    },
+    svgOverlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      zIndex: 1,
+    },
+    avatarWindow: {
+      position: 'absolute',
+      top: 25,
+      right: 20,
+      width: 250,
+      height: 300,
+      borderRadius: 15,
+      overflow: 'hidden',
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      zIndex: 2,
+      borderWidth: 1,
+      borderColor: 'rgba(255, 255, 255, 0.3)',
+    },
+    canvas: {
+      width: '100%',
+      height: '100%',
+    },
+    feedbackOverlay: {
+      position: 'absolute',
+      top: 20,
+      left: 20,
+      right: 290,
+      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+      borderRadius: 15,
+      padding: 10,
+      zIndex: 2,
+      alignItems: 'center',
+    },
+    matchCircle: {
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 10,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.6,
+      shadowRadius: 6,
+      elevation: 8,
+    },
+    matchText: {
+      color: '#fff',
+      fontSize: 24,
+      fontWeight: 'bold',
+    },
+    feedback: {
+      color: '#fff',
+      fontSize: 16,
+      textAlign: 'center',
+      marginBottom: 10,
+      fontWeight: '600',
+    },
+    progressBar: {
+      width: '100%',
+      height: 5,
+      backgroundColor: 'rgba(255, 255, 255, 0.3)',
+      borderRadius: 5,
+      overflow: 'hidden',
+    },
+    progressFill: {
+      height: '100%',
+      borderRadius: 5,
+    },
+    message: {
+      textAlign: 'center',
+      paddingBottom: 10,
+      color: 'white',
+      fontSize: 24,
+      fontWeight: '600',
+    },
+    button: {
+      paddingVertical: 15,
+      paddingHorizontal: 30,
+      backgroundColor: '#60A5FA',
+      borderRadius: 15,
+      alignSelf: 'center',
+      zIndex: 2,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+      elevation: 6,
+    },
+    buttonText: {
+      color: 'white',
+      fontSize: 22,
+      fontWeight: '700',
+    },
+    backButton: {
+      padding: 15,
+      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+      borderRadius: 50,
+      marginHorizontal: 15,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+      elevation: 6,
+    },
+    startButton: {
+      padding: 15,
+      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+      borderRadius: 50,
+      marginHorizontal: 15,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+      elevation: 6,
+    },
+    startButtonActive: {
+      backgroundColor: 'rgba(239, 68, 68, 0.8)',
+    },
+    calibrateButton: {
+      position: 'absolute',
+      bottom: 80,
+      paddingVertical: 20,
+      paddingHorizontal: 50,
+      backgroundColor: '#10B981',
+      borderRadius: 25,
+      zIndex: 4,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.5,
+      shadowRadius: 6,
+      elevation: 10,
+    },
+    buttonBar: {
+      position: 'absolute',
+      bottom: 20,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      width: '100%',
+      zIndex: 2,
+    },
+    // Popup styles
+    popupContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
+    },
+    popup: {
+      width: 300,
+      padding: 20,
+      borderRadius: 20,
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 6,
+      elevation: 8,
+    },
+    popupText: {
+      color: 'white',
+      fontSize: 28,
+      fontFamily: 'League Spartan',
+      fontWeight: '700',
+      textAlign: 'center',
+      marginBottom: 10,
+    },
+    popupSubText: {
+      color: 'white',
+      fontSize: 18,
+      fontFamily: 'League Spartan',
+      fontWeight: '500',
+      textAlign: 'center',
+      marginBottom: 20,
+    },
+    popupButton: {
+      width: 220,
+      height: 60,
+      backgroundColor: '#E9F6FE',
+      borderRadius: 30,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    popupButtonText: {
+      color: '#13CAD6',
+      fontSize: 24,
+      fontFamily: 'League Spartan',
+      fontWeight: '500',
+      textAlign: 'center',
+    },
+  });
+
+  export default ARAvatarScreen;

@@ -3,20 +3,37 @@
     "name": "CeylonCare",
     "slug": "CeylonCare",
     "version": "1.0.0",
-    "assetBundlePatterns": ["assets/videos/*"],
+    "assetBundlePatterns": ["**/*"],
+    "assets": [
+      "./assets/ar_poses/Downward_Dog.glb"
+    ],
     "orientation": "portrait",
     "icon": "",
+    "jsEngine": "jsc",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app uses the camera for real-time pose detection to guide your yoga practice.",
+        "NSMicrophoneUsageDescription": "We need microphone access to record your voice for the chatbot.",
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSSpeechRecognitionUsageDescription": "Allow speech recognition for text-to-speech"
+      },
+      "bundleIdentifier": "com.amfdo.CeylonCare"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "",
+        "foregroundImage": "./assets/images/logo.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.WEBVIEW_MEDIA"
+      ],
+      "package": "com.amfdo.CeylonCare"
     },
     "web": {
       "bundler": "metro",
@@ -24,27 +41,44 @@
       "favicon": ""
     },
     "plugins": [
-      "expo-router",
+      "expo-updates",
       [
         "expo-splash-screen",
         {
-          "image": "",
+          "image": "./assets/images/logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-asset",
-      "expo-font",
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow this app to use the camera for AR features."
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
+          "recordAudioAndroid": true
         }
-      ]
+      ],
+      "expo-asset",
+      "expo-font",
+      "expo-router"
     ],
-    "experiments": {
-      "typedRoutes": true
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "603ec50c-177a-4857-a46f-dca88837e71b"
+      }
+    },
+    "owner": "amfdo",
+    "runtimeVersion": "1.0.0",
+    "updates": {
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 30000,
+      "url": "https://u.expo.dev/603ec50c-177a-4857-a46f-dca88837e71b",
+      "requestHeaders": {
+        "expo-channel-name": "default"
+      }
     }
   }
 }
