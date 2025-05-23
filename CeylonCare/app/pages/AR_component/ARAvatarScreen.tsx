@@ -349,7 +349,7 @@ const ARAvatarScreen: React.FC<{
         matchPercentage: 0 
       };
     }
-
+    
     let feedback = '';
     let shortFeedback = '';
     let matches = 0;
@@ -543,6 +543,7 @@ const ARAvatarScreen: React.FC<{
   if (!permission?.granted) {
     return (
       <LinearGradient colors={['#1E3A8A', '#3B82F6']} style={styles.container}>
+
         <Text style={styles.message}>Camera permission required.</Text>
         <TouchableOpacity style={styles.button} onPress={requestPermission}>
           <Text style={styles.buttonText}>Grant Permission</Text>

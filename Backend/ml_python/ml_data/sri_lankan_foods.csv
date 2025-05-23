@@ -1,0 +1,68 @@
+id,name,health_category,ingredients,instructions,portion_size,protein,fat,carbs,potassium,fiber,sodium,magnesium,calories,cooking_time,health_score,glycemic_index
+1,Boiled Red Kawpi (Cowpea),high_blood_pressure,[],[],1/2 cup (75g cooked).,2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+2,Polpala Drink,high_blood_pressure,[],[],1 cup (200ml),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+3,Belimal Tea,high_blood_pressure,[],[],1 cup (200ml),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+4,Ranawara Tea,high_blood_pressure,[],[],1 cup (200ml),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+5,Iramusu Tea,high_blood_pressure,[],[],1 cup (200ml),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+6,Kathurumurunga Mallum,high_blood_pressure,"[""Traditional Kathurumurunga Mallum method""]","[""Follow traditional method""]",1 serving,2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+7,Mugunuwanna Mallum,high_blood_pressure,[],[],1/2 cup (50g cooked).,2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+8,Aguna Kola Mallum,high_blood_pressure,"[""Traditional Aguna Kola Mallum method""]","[""Follow traditional method""]",1 serving,2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+9,Dandinala Boiled,high_blood_pressure,"[""Traditional Dandinala Boiled method""]","[""Follow traditional method""]",1 serving,2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+10,Hulankiriya (Wild Asparagus Porridge),high_blood_pressure,"[""Traditional Hulankiriya (Wild Asparagus Porridge) method""]","[""Follow traditional method""]",1 serving,2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+11,Arrowroot Curry,high_blood_pressure,"[""Traditional Arrowroot Curry method""]","[""Follow traditional method""]",1 serving,2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+12,Jackfruit Leaf Soup,high_blood_pressure,"[""Traditional Jackfruit Leaf Soup method""]","[""Follow traditional method""]",1 serving,2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+13,Cucumber & Tomato Salad,high_blood_pressure,[],[],1/2 cup (75g),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+14,Sri Lankan Steamed Fish (Theri) with Fresh Herbs,high_blood_pressure,[],[],1 fillet (approx. 100-150g),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+15,Papaya & Lime Juice Drink,high_blood_pressure,[],[],1 cup (200ml),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+16,Fenugreek Drink,high_blood_pressure,[],[],1 cup (200ml),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+17,Turmeric Tea (Golden Milk),high_blood_pressure,[],[],1 cup (200ml),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+18,Gotu Kola Herbal Tea,high_blood_pressure,[],[],1 cup (200ml),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+19,Sweet Potato Chips,high_blood_pressure,[],[],1/2 cup (50g),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+20,Roasted Chickpeas,high_blood_pressure,[],[],1/4 cup (40g),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+21,Lime & Ginger Tea,high_blood_pressure,[],[],1 cup (200ml),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+22,Curry Leaves Salad,high_blood_pressure,[],[],1 tbsp (15g),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+23,Boiled Purple Yam,diabetes,[],[],1/2 cup (75g).,2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+24,Garlic and Tomato Soup,diabetes,[],[],1 cup (200ml),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+25,Lunu Kanda (Rice Gruel with Garlic and Pepper),diabetes,"[""Traditional Lunu Kanda (Rice Gruel with Garlic and Pepper) method""]","[""Follow traditional method""]",1 serving,2.81,1.09,23.4,334.5,2.62,0.53,0.98,114,20,60,50
+26,Cashew Curry,diabetes,[],[],,2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+27,Murunga Leaves Mallum (Drumstick Leaves Stir-Fry),diabetes,[],[],,2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+28,Kesel Muwa (Banana Flower Curry),diabetes,"[""Traditional Kesel Muwa (Banana Flower Curry) method""]","[""Follow traditional method""]",1 serving,2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+29,Thebu Sambol,diabetes,[],[],2 tbsp (30g),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+30,Kirihodi (Coconut Milk Gravy),diabetes,[],[],1/2 cup (100g),2.9899999999999998,11.049999999999999,19.56,406.8,5.199999999999999,0.56,1.76,189,20,90,50
+31,Mung Bean Curry,diabetes,[],[],1/2 cup (150g),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+32,Papaya Curry,diabetes,[],[],1/2 cup (150g),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+33,Jack Seed Dish,diabetes,[],[],1/2 cup (150g),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+34,Karawila (Bitter Gourd) Curry,diabetes,[],[],1/2 cup (150g),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+35,Sweet Potato and Lentil Stew,diabetes,[],[],1/2 cup (150g),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+36,Brown Rice Porridge,diabetes,[],[],1/2 cup (150g),2.81,1.09,23.4,334.5,2.62,0.53,0.98,114,20,60,50
+37,Roasted Chickpeas,diabetes,[],[],1/4 cup (40g),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+38,Cabbage Curry,diabetes,[],[],1/2 cup (150g),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+39,Tomato Curry,diabetes,[],[],1/2 cup (150g),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+40,Pumpkin Curry,diabetes,[],[],1/2 cup (150g),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+41,Sweet Potato Curry,diabetes,[],[],1/2 cup (150g),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+42,Del (Breadfruit) Curry,diabetes,[],[],1/2 cup (150g),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+43,Okra (Ladyfinger) Curry,diabetes,"[""Traditional Okra (Ladyfinger) Curry method""]","[""Follow traditional method""]",1 serving,2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+44,Eggplant and Tomato Stir Fry,diabetes,[],[],1/2 cup (100g),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+45,Squashed Eggplant Curry,both,"[""Traditional Squashed Eggplant Curry method""]","[""Follow traditional method""]",1 serving,2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+46,Del Atukos Curry (Breadfruit Seed Curry),both,"[""Traditional Del Atukos Curry (Breadfruit Seed Curry) method""]","[""Follow traditional method""]",1 serving,2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+47,Thalami Batu Curry (Ribbed Gourd Curry),both,"[""Traditional Thalami Batu Curry (Ribbed Gourd Curry) method""]","[""Follow traditional method""]",1 serving,2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+48,Halmasso Fish Curry,both,"[""Traditional Halmasso Fish Curry method""]","[""Follow traditional method""]",1 serving,2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+49,Polos Curry (Young Jackfruit Curry),both,[],[],,2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+50,Kola Kanda (Herbal Porridge),both,"[""Traditional Kola Kanda (Herbal Porridge) method""]","[""Follow traditional method""]",1 serving,2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+51,Karapincha Soup,both,[],[],,2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+52,Nilkatarolu Juice,both,[],[],1/2 cup (100ml),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+53,Bovitiya Tea,both,[],[],1 cup (200ml),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+54,Sri Lankan Coconut Milk Soup with Vegetables,both,[],[],1 cup (200ml),2.9899999999999998,11.049999999999999,19.56,406.8,5.199999999999999,0.56,1.76,189,20,90,50
+55,Kurakkan Kanda,both,"[""Traditional Kurakkan Kanda method""]","[""Follow traditional method""]",1 serving,4.1899999999999995,1.3900000000000001,36.78,422.4,5.949999999999999,0.53,1.6400000000000001,176,20,90,50
+56,Gotukola Sambol,both,[],[],2 tbsp (30g),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+57,Sweet Potato Chips,both,[],[],1/2 cup (50g),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+58,Fenugreek Drink,both,[],[],1 cup (200ml),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+59,Turmeric Tea (Golden Milk),both,[],[],1 cup (200ml),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+60,Kankun Stir-Fry,both,"[""Traditional Kankun Stir-Fry method""]","[""Follow traditional method""]",1 serving,2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+61,Lunu Miris,both,[],[],,2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+62,Boiled Manioc with Coconut Sambol,both,"[""Traditional Boiled Manioc with Coconut Sambol method""]","[""Follow traditional method""]",1 serving,2.9899999999999998,11.049999999999999,19.56,406.8,5.199999999999999,0.56,1.76,189,20,90,50
+63,Soya Bean Stir-Fry,both,[],[],1/2 cup (100g),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+64,Eggplant Curry (Brinjal Curry),both,[],[],,2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+65,Kathurumurunga Leaf Stir-Fry,both,"[""Traditional Kathurumurunga Leaf Stir-Fry method""]","[""Follow traditional method""]",1 serving,2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+66,Papaya and Lemon Juice,both,[],[],1/2 cup (100g),2.0,1.0,15.0,300.0,2.5,0.5,0.8,77,20,60,50
+67,Brown Rice Porridge,both,[],[],1/2 cup (150g),2.81,1.09,23.4,334.5,2.62,0.53,0.98,114,20,60,50
