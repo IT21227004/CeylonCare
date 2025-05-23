@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Modal } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Modal, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ScreenOrientation from 'expo-screen-orientation';
@@ -137,6 +137,7 @@ const ARAvatarScreen: React.FC<{
   const cameraRef = useRef<CameraView>(null);
   const { width, height } = useWindowDimensions();
   const processFrameQueue = useRef<Promise<void> | null>(null);
+  const fadeAnim = useRef(new Animated.Value(0)).current; // For popup animation
 
   const connections = [
     ['nose', 'left_shoulder'],
@@ -157,6 +158,16 @@ const ARAvatarScreen: React.FC<{
   // Compute therapyKey and select angle definitions
   const therapyKey = therapyName.replace(" ", "_") as keyof typeof poseAngleDefinitions;
   const angleDefs = poseAngleDefinitions[therapyKey] || defaultAngleDefinitions;
+
+  // Ensure camera preview doesn't pause when popup is shown
+  useEffect(() => {
+    if (cameraRef.current && isCameraReady && permission?.granted) {
+      if (showPopup) {
+        console.log('[DEBUG] Popup shown, ensuring camera preview remains active');
+        cameraRef.current.resumePreview();
+      }
+    }
+  }, [showPopup, isCameraReady, permission]);
 
   useEffect(() => {
     const originalError = console.error;
@@ -483,6 +494,25 @@ const ARAvatarScreen: React.FC<{
     }
   }, [frameBuffer]);
 
+  // Popup animation and auto-dismiss
+  useEffect(() => {
+    if (showPopup) {
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        setTimeout(() => {
+          Animated.timing(fadeAnim, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+          }).start(() => setShowPopup(false));
+        }, 2000); // Display for 2 seconds
+      });
+    }
+  }, [showPopup]);
+
   const retryAsync = async (fn: () => Promise<void>, retries: number, delay: number) => {
     try {
       await fn();
@@ -601,19 +631,18 @@ const ARAvatarScreen: React.FC<{
       </View>
 
       <Modal
-        animationType="fade"
+        animationType="none"
         transparent={true}
         visible={showPopup}
         onRequestClose={() => setShowPopup(false)}
       >
         <View style={styles.popupContainer}>
-          <LinearGradient colors={['#33E4DB', '#00BBD3']} style={styles.popup}>
-            <Text style={styles.popupText}>Congratulations!</Text>
-            <Text style={styles.popupSubText}>You've mastered the {therapyName} pose!</Text>
-            <TouchableOpacity onPress={() => setShowPopup(false)} style={styles.popupButton}>
-              <Text style={styles.popupButtonText}>Continue</Text>
-            </TouchableOpacity>
-          </LinearGradient>
+          <Animated.View style={[styles.popup, { opacity: fadeAnim }]}>
+            <LinearGradient colors={['#10B981', '#34D399']} style={styles.popupGradient}>
+              <Text style={styles.popupText}>Great Job!</Text>
+              <Text style={styles.popupSubText}>You've mastered the {therapyName} pose!</Text>
+            </LinearGradient>
+          </Animated.View>
         </View>
       </Modal>
     </LinearGradient>
@@ -781,49 +810,42 @@ const styles = StyleSheet.create({
   },
   popupContainer: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-end', // Position at bottom
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)', // Lighter background
+    paddingBottom: 20, // Space from bottom edge
   },
   popup: {
-    width: 300,
-    padding: 20,
-    borderRadius: 20,
+    width: '90%', // Wide, thin box
+    height: 80, // Reduced height for thin appearance
+    borderRadius: 12,
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 8,
   },
+  popupGradient: {
+    width: '100%',
+    height: '100%',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    flexDirection: 'row', // Horizontal layout for text
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   popupText: {
-    color: 'white',
-    fontSize: 28,
-    fontFamily: 'League Spartan',
+    color: '#fff',
+    fontSize: 18,
     fontWeight: '700',
     textAlign: 'center',
-    marginBottom: 10,
+    marginRight: 10,
   },
   popupSubText: {
-    color: 'white',
-    fontSize: 18,
-    fontFamily: 'League Spartan',
-    fontWeight: '500',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  popupButton: {
-    width: 220,
-    height: 60,
-    backgroundColor: '#E9F6FE',
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  popupButtonText: {
-    color: '#13CAD6',
-    fontSize: 24,
-    fontFamily: 'League Spartan',
+    color: '#fff',
+    fontSize: 14,
     fontWeight: '500',
     textAlign: 'center',
   },
