@@ -12,6 +12,7 @@ import Svg, { Line, Circle } from 'react-native-svg';
 import allTherapyData from '../../../assets/ar_poses/all_therapy_data.json';
 import axios from 'axios';
 
+// Avatar Component
 const Avatar: React.FC<{ isAnimating: boolean; url: string | null }> = ({ isAnimating, url }) => {
   const gltf = useGLTF(url || '', true); // Enable fallback
   const meshRef = useRef<Mesh>(null!);
@@ -82,6 +83,37 @@ const Avatar: React.FC<{ isAnimating: boolean; url: string | null }> = ({ isAnim
   );
 };
 
+// Default Angle Definitions (Fallback)
+const defaultAngleDefinitions = [
+  { joint1: 'left_shoulder', joint2: 'left_elbow', joint3: 'left_wrist', name: 'left elbow angle' },
+  { joint1: 'right_shoulder', joint2: 'right_elbow', joint3: 'right_wrist', name: 'right elbow angle' },
+  { joint1: 'left_hip', joint2: 'left_knee', joint3: 'left_ankle', name: 'left knee angle' },
+  { joint1: 'right_hip', joint2: 'right_knee', joint3: 'right_ankle', name: 'right knee angle' },
+];
+
+// Pose-Specific Angle Definitions
+const poseAngleDefinitions = {
+  'Downward_Dog': [
+    { joint1: 'left_shoulder', joint2: 'left_hip', joint3: 'left_knee', name: 'left hip angle' },
+    { joint1: 'right_shoulder', joint2: 'right_hip', joint3: 'right_knee', name: 'right hip angle' },
+    { joint1: 'left_hip', joint2: 'left_knee', joint3: 'left_ankle', name: 'left knee angle' },
+    { joint1: 'right_hip', joint2: 'right_knee', joint3: 'right_ankle', name: 'right knee angle' },
+  ],
+  'Triangle_Pose': [
+    { joint1: 'left_shoulder', joint2: 'left_hip', joint3: 'left_knee', name: 'left side angle' },
+    { joint1: 'right_shoulder', joint2: 'right_hip', joint3: 'right_knee', name: 'right side angle' },
+    { joint1: 'left_hip', joint2: 'left_knee', joint3: 'left_ankle', name: 'left knee angle' },
+    { joint1: 'right_hip', joint2: 'right_knee', joint3: 'right_ankle', name: 'right knee angle' },
+  ],
+  'Warrior_II': [
+    { joint1: 'left_shoulder', joint2: 'left_elbow', joint3: 'left_wrist', name: 'left arm angle' },
+    { joint1: 'right_shoulder', joint2: 'right_elbow', joint3: 'right_wrist', name: 'right arm angle' },
+    { joint1: 'left_hip', joint2: 'left_knee', joint3: 'left_ankle', name: 'left knee angle' },
+    { joint1: 'right_hip', joint2: 'right_knee', joint3: 'right_ankle', name: 'right knee angle' },
+  ],
+};
+
+// Main Component
 const ARAvatarScreen: React.FC<{
   route: { params?: { arPoseUrl?: string; therapyName?: string } };
   navigation: { goBack: () => void };
@@ -96,12 +128,12 @@ const ARAvatarScreen: React.FC<{
   const [modelUri, setModelUri] = useState<string | null>(null);
   const [targetLandmarks, setTargetLandmarks] = useState<any[]>([]);
   const [isCalibrated, setIsCalibrated] = useState<boolean>(false);
-  const [isCalibrating, setIsCalibrating] = useState<boolean>(false); // New state for calibration
+  const [isCalibrating, setIsCalibrating] = useState<boolean>(false);
   const [matchPercentage, setMatchPercentage] = useState(0);
   const [userLandmarks, setUserLandmarks] = useState<any[]>([]);
   const [jointStatus, setJointStatus] = useState<{ name: string, isCorrect: boolean }[]>([]);
   const [frameBuffer, setFrameBuffer] = useState<string | null>(null);
-  const [showPopup,, setShowPopup] = useState<boolean>(false);
+  const [showPopup, setShowPopup] = useState<boolean>(false);
   const cameraRef = useRef<CameraView>(null);
   const { width, height } = useWindowDimensions();
   const processFrameQueue = useRef<Promise<void> | null>(null);
@@ -122,12 +154,9 @@ const ARAvatarScreen: React.FC<{
     ['left_hip', 'right_hip'],
   ];
 
-  const angleDefinitions = [
-    { joint1: 'left_shoulder', joint2: 'left_elbow', joint3: 'left_wrist', name: 'left elbow angle' },
-    { joint1: 'right_shoulder', joint2: 'right_elbow', joint3: 'right_wrist', name: 'right elbow angle' },
-    { joint1: 'left_hip', joint2: 'left_knee', joint3: 'left_ankle', name: 'left knee angle' },
-    { joint1: 'right_hip', joint2: 'right_knee', joint3: 'right_ankle', name: 'right knee angle' },
-  ];
+  // Compute therapyKey and select angle definitions
+  const therapyKey = therapyName.replace(" ", "_") as keyof typeof poseAngleDefinitions;
+  const angleDefs = poseAngleDefinitions[therapyKey] || defaultAngleDefinitions;
 
   useEffect(() => {
     const originalError = console.error;
@@ -233,7 +262,6 @@ const ARAvatarScreen: React.FC<{
         setIsCalibrated(true);
         setFeedback('Calibration successful! Start posing.');
         setShortFeedback('Calibrated!');
-        // Add delay to stabilize camera
         await new Promise((resolve) => setTimeout(resolve, 500));
       } else {
         console.warn('[WARN] No landmarks detected during calibration');
@@ -314,11 +342,12 @@ const ARAvatarScreen: React.FC<{
     let feedback = '';
     let shortFeedback = '';
     let matches = 0;
-    const totalComparisons = angleDefinitions.length;
+    const totalComparisons = angleDefs.length;
     const jointStatus: { name: string, isCorrect: boolean }[] = [];
     const tolerance = 10;
 
-    angleDefinitions.forEach(({ joint1, joint2, joint3, name }) => {
+    angleDefs.forEach((angleDef: { joint1: string; joint2: string; joint3: string; name: string }) => {
+      const { joint1, joint2, joint3, name } = angleDef;
       const userJ1 = userMap.get(joint1);
       const userJ2 = userMap.get(joint2);
       const userJ3 = userMap.get(joint3);
@@ -341,7 +370,7 @@ const ARAvatarScreen: React.FC<{
         });
 
         if (!isCorrect && !shortFeedback) {
-          const jointName = name || 'joint'; // Fallback if name is undefined
+          const jointName = name || 'joint';
           shortFeedback = `Adjust your ${jointName.replace('angle', '').trim()}`;
           if (userAngle > targetAngle) {
             shortFeedback += ' to bend less';
@@ -591,6 +620,7 @@ const ARAvatarScreen: React.FC<{
   );
 };
 
+// Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
