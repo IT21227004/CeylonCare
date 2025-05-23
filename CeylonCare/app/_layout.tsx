@@ -2,7 +2,7 @@ import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 import { RouteProp } from "@react-navigation/native";
 
-// Pages
+// Existing Pages
 import Register from "./pages/Register";
 import SplashScreen from "./pages/SplashScreen";
 import Login from "./pages/Login";
@@ -18,6 +18,15 @@ import TherapyRecommendations from "./pages/AR_component/TherapyRecommendations"
 import TherapyDetails from "./pages/AR_component/TherapyDetails";
 import ARAvatarScreen from "./pages/AR_component/ARAvatarScreen";
 import CameraTest from "./pages/AR_component/CameraTest";
+
+// Sri Lankan Food Recommendation Components
+import HealthyFoodMain from "./pages/srilankan_food/HealthyFoodMain";
+import HealthDataInput from "./pages/srilankan_food/HealthDataInput";
+import FoodRecommendations from "./pages/srilankan_food/FoodRecommendations";
+import FoodDetails from "./pages/srilankan_food/FoodDetails";
+import MealPlan from "./pages/srilankan_food/MealPlan";
+import FoodScanner from "./pages/srilankan_food/FoodScanner";
+import ManualFoodInput from "./pages/srilankan_food/ManualFoodInput.jsx";
 
 type RootStackParamList = {
   Splash: undefined;
@@ -35,6 +44,14 @@ type RootStackParamList = {
   ARAvatarScreen: undefined;
   CameraTest: undefined;
   ChatScreen: undefined;
+  // Sri Lankan Food Recommendation screens
+  HealthyFoodMain: undefined;
+  HealthDataInput: undefined;
+  FoodRecommendations: undefined;
+  FoodDetails: { food: any };
+  MealPlan: undefined;
+  FoodScanner: undefined;
+  ManualFoodInput: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -68,6 +85,14 @@ const StackNavigator = () => {
     { name: 'TherapyDetails', component: TherapyDetails },
     { name: 'ARAvatarScreen', component: ARAvatarScreen },
     { name: 'ChatScreen', component: ChatScreen },
+    // Sri Lankan Food screens
+    { name: 'HealthyFoodMain', component: HealthyFoodMain },
+    { name: 'HealthDataInput', component: HealthDataInput },
+    { name: 'FoodRecommendations', component: FoodRecommendations },
+    { name: 'FoodDetails', component: FoodDetails },
+    { name: 'MealPlan', component: MealPlan },
+    { name: 'FoodScanner', component: FoodScanner },
+    { name: 'ManualFoodInput', component: ManualFoodInput },
   ];
 
   // Log validation results
@@ -105,7 +130,8 @@ const StackNavigator = () => {
         component={Home}
         options={{ headerShown: false }}
       />
-      {/* Profile */}
+      
+      {/* Profile Screens */}
       <Stack.Screen
         name="Profile"
         component={Profile}
@@ -126,7 +152,8 @@ const StackNavigator = () => {
         component={PrivacyPolicy}
         options={{ headerShown: false }}
       />
-      {/* AR_Component */}
+      
+      {/* AR Component Screens */}
       <Stack.Screen
         name="TherapyRecommendations"
         component={TherapyRecommendations}
@@ -143,17 +170,53 @@ const StackNavigator = () => {
         component={ARAvatarScreen}
         options={{ headerShown: false }}
       />
-      
       <Stack.Screen
         name="CameraTest"
         component={CameraTest}
         options={{ headerShown: false }}
       />
       
-      {/* Chatbot_Component */}
+      {/* Chatbot Component Screens */}
       <Stack.Screen
         name="ChatScreen"
         component={ChatScreen}
+        options={{ headerShown: false }}
+      />
+
+      {/* Sri Lankan Food Recommendation Screens */}
+      <Stack.Screen
+        name="HealthyFoodMain"
+        component={HealthyFoodMain}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="HealthDataInput"
+        component={HealthDataInput}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="FoodRecommendations"
+        component={FoodRecommendations}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="FoodDetails"
+        component={FoodDetails}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="MealPlan"
+        component={MealPlan}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="FoodScanner"
+        component={FoodScanner}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ManualFoodInput"
+        component={ManualFoodInput}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

@@ -67,7 +67,7 @@ const Register = ({ navigation }: any) => {
     try {
       console.log("Sending request to backend...");
 
-      const response = await fetch("http://192.168.8.134:5000/register", {
+      const response = await fetch("http://192.168.1.108:5000/register", {
 
         method: "POST",
         headers: {
@@ -121,7 +121,7 @@ const Register = ({ navigation }: any) => {
         />
 
         <Text style={styles.label}>Password</Text>
-        <View style={(styles.input, styles.passwordInputContainer)}>
+        <View style={[styles.input, styles.passwordInputContainer]}>
           <TextInput
             style={[styles.passwordInput]}
             placeholder="********"

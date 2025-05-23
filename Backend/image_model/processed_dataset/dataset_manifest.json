@@ -1,0 +1,182 @@
+{
+  "dataset_name": "CeylonCare Food Dataset",
+  "creation_date": "2025-05-22",
+  "source_directory": "food_images",
+  "output_directory": "processed_dataset",
+  "splits": {
+    "train": {
+      "path": "processed_dataset\\train",
+      "categories": {
+        "bathala": 34,
+        "casava": 30,
+        "karawila": 40,
+        "kolakanda": 28,
+        "kos": 33,
+        "kurakkkan": 22,
+        "munpiyali": 28,
+        "POLOS": 27,
+        "redkawwpi": 28,
+        "red_rice": 30,
+        "thebu": 22,
+        "white rice": 35
+      },
+      "total_images": 357
+    },
+    "val": {
+      "path": "processed_dataset\\val",
+      "categories": {
+        "bathala": 7,
+        "casava": 6,
+        "karawila": 8,
+        "kolakanda": 3,
+        "kos": 7,
+        "kurakkkan": 0,
+        "munpiyali": 6,
+        "POLOS": 1,
+        "redkawwpi": 6,
+        "red_rice": 6,
+        "thebu": 2,
+        "white rice": 7
+      },
+      "total_images": 59
+    },
+    "test": {
+      "path": "processed_dataset\\test",
+      "categories": {
+        "bathala": 8,
+        "casava": 7,
+        "karawila": 10,
+        "kolakanda": 4,
+        "kos": 8,
+        "kurakkkan": 1,
+        "munpiyali": 7,
+        "POLOS": 3,
+        "redkawwpi": 6,
+        "red_rice": 7,
+        "thebu": 3,
+        "white rice": 9
+      },
+      "total_images": 73
+    }
+  },
+  "categories": {
+    "kolakanda": {
+      "total_original_images": 103,
+      "valid_images": 24,
+      "invalid_images": 79,
+      "train_images": 14,
+      "val_images": 3,
+      "test_images": 4,
+      "augmented_images": 14
+    },
+    "casava": {
+      "total_original_images": 44,
+      "valid_images": 43,
+      "invalid_images": 1,
+      "train_images": 30,
+      "val_images": 6,
+      "test_images": 7,
+      "augmented_images": 0
+    },
+    "bathala": {
+      "total_original_images": 49,
+      "valid_images": 49,
+      "invalid_images": 0,
+      "train_images": 34,
+      "val_images": 7,
+      "test_images": 8,
+      "augmented_images": 0
+    },
+    "karawila": {
+      "total_original_images": 100,
+      "valid_images": 58,
+      "invalid_images": 42,
+      "train_images": 40,
+      "val_images": 8,
+      "test_images": 10,
+      "augmented_images": 0
+    },
+    "kurakkkan": {
+      "total_original_images": 34,
+      "valid_images": 3,
+      "invalid_images": 31,
+      "train_images": 2,
+      "val_images": 0,
+      "test_images": 1,
+      "augmented_images": 20
+    },
+    "POLOS": {
+      "total_original_images": 23,
+      "valid_images": 13,
+      "invalid_images": 10,
+      "train_images": 9,
+      "val_images": 1,
+      "test_images": 3,
+      "augmented_images": 18
+    },
+    "kos": {
+      "total_original_images": 91,
+      "valid_images": 48,
+      "invalid_images": 43,
+      "train_images": 33,
+      "val_images": 7,
+      "test_images": 8,
+      "augmented_images": 0
+    },
+    "munpiyali": {
+      "total_original_images": 42,
+      "valid_images": 42,
+      "invalid_images": 0,
+      "train_images": 28,
+      "val_images": 6,
+      "test_images": 7,
+      "augmented_images": 0
+    },
+    "redkawwpi": {
+      "total_original_images": 101,
+      "valid_images": 41,
+      "invalid_images": 60,
+      "train_images": 28,
+      "val_images": 6,
+      "test_images": 6,
+      "augmented_images": 0
+    },
+    "red_rice": {
+      "total_original_images": 47,
+      "valid_images": 43,
+      "invalid_images": 4,
+      "train_images": 30,
+      "val_images": 6,
+      "test_images": 7,
+      "augmented_images": 0
+    },
+    "thebu": {
+      "total_original_images": 63,
+      "valid_images": 16,
+      "invalid_images": 47,
+      "train_images": 11,
+      "val_images": 2,
+      "test_images": 3,
+      "augmented_images": 11
+    },
+    "white rice": {
+      "total_original_images": 51,
+      "valid_images": 51,
+      "invalid_images": 0,
+      "train_images": 35,
+      "val_images": 7,
+      "test_images": 9,
+      "augmented_images": 0
+    }
+  },
+  "statistics": {
+    "total_categories": 12,
+    "total_original_images": 748,
+    "total_valid_images": 431,
+    "total_invalid_images": 317,
+    "total_train_images": 294,
+    "total_val_images": 59,
+    "total_test_images": 73,
+    "total_augmented_images": 63
+  }
+}

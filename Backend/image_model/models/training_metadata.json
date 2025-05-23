@@ -1,0 +1,39 @@
+{
+  "training_start": "2025-05-22T16:59:26.489445",
+  "training_end": "2025-05-22T17:02:07.705975",
+  "training_duration_seconds": 161.21653,
+  "tensorflow_version": "2.15.0",
+  "num_classes": 12,
+  "class_names": [
+    "POLOS",
+    "bathala",
+    "casava",
+    "karawila",
+    "kolakanda",
+    "kos",
+    "kurakkkan",
+    "munpiyali",
+    "red_rice",
+    "redkawwpi",
+    "thebu",
+    "white rice"
+  ],
+  "img_size": 224,
+  "batch_size": 32,
+  "initial_epochs": 30,
+  "fine_tune_epochs": 15,
+  "learning_rate": 0.001,
+  "fine_tune_lr": 0.0001,
+  "metrics": {
+    "test_loss": 0.2624490261077881,
+    "test_accuracy": 0.931506872177124,
+    "f1_macro": 0.9369803893217207,
+    "precision_macro": 0.9360119047619048,
+    "recall_macro": 0.9481812169312169
+  },
+  "tflite_metrics": {
+    "original_size_kb": 11244.890625,
+    "optimized_size_kb": 3097.9765625,
+    "float16_size_kb": 5660.41796875
+  }
+}
