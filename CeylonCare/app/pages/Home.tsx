@@ -41,7 +41,7 @@ const buttonData = [
   {
     id: "4",
     title: "AI Chatbot",
-    description: "#####",
+    description: "Be healthy with our AI Assistant",
     icon: require("../../assets/images/ai_home 1.png"),
     navigateTo: "ChatScreen",
   },
@@ -64,7 +64,7 @@ const Home = ({ navigation }: any) => {
       const userId = await AsyncStorage.getItem("userId");
       if (!userId) throw new Error("User ID not found");
 
-      const response = await fetch(`http://172.20.10.14:5000/user/${userId}`);
+      const response = await fetch(`http://192.168.8.134:5000/user/${userId}`);
 
       if (!response.ok) throw new Error("Failed to fetch user profile");
 
