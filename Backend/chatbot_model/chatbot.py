@@ -56,13 +56,17 @@ except Exception as e:
 
 def is_sinhala_text(text):
     sinhala_pattern = re.compile(r'[\u0D80-\u0DFF]')
-    return bool(sinhala_pattern.search(text))
+    result = bool(sinhala_pattern.search(text))
+    logger.debug(f'[DEBUG] is_sinhala_text: text="{text}", result={result}')
+    return result
 
 def get_user_profile(user_id):
     try:
         ref = db.reference('users').child(user_id)
         snapshot = ref.get()
-        return snapshot or {'age': None, 'gender': None, 'healthCondition': 'general'}
+        profile = snapshot or {'age': None, 'gender': None, 'healthCondition': 'general'}
+        logger.debug(f'[DEBUG] Fetched user profile for user_id={user_id}: {profile}')
+        return profile
     except Exception as e:
         logger.error(f'[ERROR] Failed to fetch user profile: {e}')
         return {'age': None, 'gender': None, 'healthCondition': 'general'}
@@ -156,13 +160,14 @@ def transcribe_audio(audio_path, language_code):
                     "සහාය", "ආහාර", "සෞඛ්‍යය", "උපදෙස්", "පාලනය", "රුධිර", "පීඩනය", 
                     "එක", "දෙක", "තුන", "හතර", "පහ", "හය", "හත", "අට", "නවය", "දහය", 
                     "කරුණාකර", "මට උදව් කරන්න", "මම හොඳින් නැහැ", "මට බෙහෙත් ඕනේ", 
-                    "මගේ රෝගය", "උණුසුම", "සෙම්ප්‍රතිශ්‍යාව", "ඔබට ස්තුතියි"
+                    "මගේ රෝගය", "උණුසුම", "සෙම්ප්‍රතිශ්‍යාව", "ඔබට ස්තුතියි",
+                    "ව්‍යායාම", "ආහාර වේලක්", "සැලසුම්"
                 ])
             ]
             logger.debug('[DEBUG] Sinhala speech contexts loaded')
         else:
             speech_contexts = [
-                speech.SpeechContext(phrases=["hello", "i", "need", "health", "advice", "advise", "help", "doctor"])
+                speech.SpeechContext(phrases=["hello", "i", "need", "health", "advice", "advise", "help", "doctor", "diet", "exercise"])
             ]
             logger.debug('[DEBUG] English speech contexts loaded')
 
@@ -214,14 +219,32 @@ def chatbot_predict(query, language_code, user_id, age=None, gender=None, health
     intent = label_encoder.inverse_transform(prediction)[0]
     logger.debug(f'[DEBUG] Predicted intent: {intent}, target_language: {target_language}')
 
+    # Primary filtering: Match intent and language
     filtered_df = data_df[(data_df['Intent'] == intent) & (data_df['Language'] == target_language)]
-    if age and not pd.isna(age):
-        filtered_df = filtered_df[pd.to_numeric(filtered_df['Age'], errors='coerce').abs().sub(age).abs() <= 10]
-    if gender:
-        filtered_df = filtered_df[filtered_df['Gender'] == gender]
-    if health_condition and health_condition != 'general':
-        specific_df = filtered_df[filtered_df['Health Condition'] == health_condition]
-        filtered_df = specific_df if not specific_df.empty else filtered_df
+    logger.debug(f'[DEBUG] Primary filtered DataFrame size: {len(filtered_df)}')
+
+    # Secondary filtering: Try to match health condition, age, and gender, but fall back if no matches
+    if not filtered_df.empty:
+        specific_df = filtered_df
+        if health_condition and health_condition != 'general':
+            specific_df = filtered_df[filtered_df['Health Condition'].str.lower() == health_condition]
+            logger.debug(f'[DEBUG] Filtered by health condition ({health_condition}): {len(specific_df)} rows')
+        if specific_df.empty:
+            specific_df = filtered_df  # Fall back to intent and language match
+            logger.debug('[DEBUG] Fell back to intent and language match')
+        if age and not pd.isna(age):
+            specific_df = specific_df[pd.to_numeric(specific_df['Age'], errors='coerce').abs().sub(age).abs() <= 10]
+            logger.debug(f'[DEBUG] Filtered by age ({age}): {len(specific_df)} rows')
+            if specific_df.empty:
+                specific_df = filtered_df  # Fall back
+                logger.debug('[DEBUG] Fell back to intent and language match after age filter')
+        if gender:
+            specific_df = specific_df[specific_df['Gender'].str.lower() == gender.lower()]
+            logger.debug(f'[DEBUG] Filtered by gender ({gender}): {len(specific_df)} rows')
+            if specific_df.empty:
+                specific_df = filtered_df  # Fall back
+                logger.debug('[DEBUG] Fell back to intent and language match after gender filter')
+        filtered_df = specific_df
 
     if filtered_df.empty:
         result = {
@@ -232,12 +255,13 @@ def chatbot_predict(query, language_code, user_id, age=None, gender=None, health
         return result
 
     response = filtered_df['Response'].iloc[0]
-    recommendation = filtered_df['Recommendation (Condition)'].iloc[0]
+    recommendation = filtered_df['Recommendation (Condition)'].iloc[0] if 'Recommendation (Condition)' in filtered_df.columns else ''
 
-    if target_language == 'Sinhala':
+    if target_language == 'Sinhala' and recommendation:
         try:
             translation = translate_client.translate(recommendation, target_language='si')
             recommendation = translation['translatedText']
+            logger.debug(f'[DEBUG] Translated recommendation to Sinhala: {recommendation}')
         except Exception as e:
             logger.error(f'[ERROR] Translation failed: {e}')
             recommendation = f"{recommendation} (Translation failed)"
