@@ -48,6 +48,7 @@ const TherapyRecommendations: React.FC<TherapyRecommendationsProps> = ({
         return;
       }
 
+      // Get therapy recommendations from the Backend
       const response = await axios.get<{ recommendations: TherapyItem[] }>(
         `http://192.168.8.134:5000/ar_therapy/${userId}`
       );

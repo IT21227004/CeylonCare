@@ -113,7 +113,7 @@ const poseAngleDefinitions = {
   ],
 };
 
-// Main Component
+// Load avatar to frontend
 const ARAvatarScreen: React.FC<{
   route: { params?: { arPoseUrl?: string; therapyName?: string } };
   navigation: { goBack: () => void };
