@@ -12,7 +12,7 @@ import Svg, { Line, Circle } from 'react-native-svg';
 import allTherapyData from '../../../assets/ar_poses/all_therapy_data.json';
 import axios from 'axios';
 
-// Avatar Component
+// animating avatar in the box
 const Avatar: React.FC<{ isAnimating: boolean; url: string | null }> = ({ isAnimating, url }) => {
   const gltf = useGLTF(url || '', true); // Enable fallback
   const meshRef = useRef<Mesh>(null!);
@@ -252,6 +252,7 @@ const ARAvatarScreen: React.FC<{
     }
   }, [isCameraReady, permission, targetLandmarks, isCalibrated, isCalibrating]);
 
+  // pose detect and verify
   const calibrateCamera = async () => {
     if (!cameraRef.current || !permission?.granted) {
       console.error('[ERROR] Cannot calibrate: Camera not ready or permission denied');
