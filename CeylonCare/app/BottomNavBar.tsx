@@ -7,7 +7,7 @@ const BottomNavBar = ({ navigation }: any) => {
       {/* Home */}
       <TouchableOpacity
         style={styles.navButton}
-        onPress={() => navigation.navigate("Splash")}
+        onPress={() => navigation.navigate("Home")}
       >
         <Image
           source={require("../assets/images/home_nav.png")}

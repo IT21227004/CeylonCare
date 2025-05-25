@@ -22,7 +22,7 @@ const buttonData = [
     title: "Check Me",
     description: "Answer Our Question And Check Your Risk Of Diagnosed",
     icon: require("../../assets/images/prediction_home 1.png"),
-    navigateTo: "Splash",
+    navigateTo: "Home",
   },
   {
     id: "2",

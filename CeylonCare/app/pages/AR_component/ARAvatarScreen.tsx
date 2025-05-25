@@ -721,7 +721,7 @@ const styles = StyleSheet.create({
   },
   feedback: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 26,
     textAlign: 'center',
     marginBottom: 10,
     fontWeight: '600',
