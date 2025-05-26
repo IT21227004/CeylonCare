@@ -54,12 +54,14 @@ except Exception as e:
     logger.error(f'[ERROR] Failed to load model or assets: {e}')
     raise
 
+# Function to check if text contains Sinhala characters
 def is_sinhala_text(text):
     sinhala_pattern = re.compile(r'[\u0D80-\u0DFF]')
     result = bool(sinhala_pattern.search(text))
     logger.debug(f'[DEBUG] is_sinhala_text: text="{text}", result={result}')
     return result
 
+# Function to get user profile from Firebase
 def get_user_profile(user_id):
     try:
         ref = db.reference('users').child(user_id)
@@ -71,6 +73,7 @@ def get_user_profile(user_id):
         logger.error(f'[ERROR] Failed to fetch user profile: {e}')
         return {'age': None, 'gender': None, 'healthCondition': 'general'}
 
+# Function to save chat history to Firebase
 def save_chat_history(user_id, query, response, language_code, recommendation=''):
     try:
         ref = db.reference('chats').push({
@@ -94,6 +97,7 @@ def save_chat_history(user_id, query, response, language_code, recommendation=''
         })
         logger.debug(f'[DEBUG] Chat saved with client-side timestamp, key: {ref.key}')
 
+# Function to convert audio to required format by Google Speech-to-Text
 def convert_audio_to_required_format(input_path, output_path):
     try:
         audio = AudioSegment.from_file(input_path)
@@ -104,6 +108,7 @@ def convert_audio_to_required_format(input_path, output_path):
         logger.error(f'[ERROR] Failed to convert audio: {e}')
         raise
 
+# Function to get audio duration
 def get_audio_duration(audio_path):
     try:
         audio = AudioSegment.from_file(audio_path)
@@ -114,6 +119,7 @@ def get_audio_duration(audio_path):
         logger.error(f'[ERROR] Failed to get audio duration: {e}')
         return 0
 
+# Function to validate audio file in correct format
 def validate_audio_file(audio_path):
     try:
         audio = AudioSegment.from_file(audio_path)
@@ -129,6 +135,7 @@ def validate_audio_file(audio_path):
         logger.error(f'[ERROR] Failed to validate audio file: {e}')
         return False
 
+# Function to transcribe audio using Google Speech-to-Text
 def transcribe_audio(audio_path, language_code):
     try:
         if not os.path.exists(audio_path):
@@ -198,6 +205,7 @@ def transcribe_audio(audio_path, language_code):
             os.remove(converted_audio_path)
             logger.debug(f'[DEBUG] Cleaned up converted audio file: {converted_audio_path}')
 
+# Function to predict chatbot response
 def chatbot_predict(query, language_code, user_id, age=None, gender=None, health_condition=None):
     logger.debug(f'[DEBUG] chatbot_predict inputs - query: "{query}", language_code: "{language_code}", user_id: "{user_id}", age: {age}, gender: "{gender}", health_condition: "{health_condition}"')
 
@@ -270,6 +278,7 @@ def chatbot_predict(query, language_code, user_id, age=None, gender=None, health
     logger.debug(f'[DEBUG] Selected response: {result}')
     return result
 
+# Flask routes
 @app.route('/chat', methods=['POST'])
 def chat():
     data = request.get_json()
@@ -287,6 +296,7 @@ def chat():
     save_chat_history(user_id, message, result['response'], language_code, result['recommendation'])
     return jsonify(result)
 
+# Flask route for audio transcription
 @app.route('/transcribe', methods=['POST'])
 def transcribe():
     try:
